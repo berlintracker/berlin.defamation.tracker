@@ -231,7 +231,7 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       color: var(--ink);
       margin-top: 14px;
     }
@@ -241,12 +241,11 @@
     .title-de { color: var(--accent); display: block; font-size: .88em; margin-top: 3px; }
 
     .site-bear {
-      height: 72px;
-      width: auto;
+      height: 58px;
+      width: 58px;
       flex-shrink: 0;
-      opacity: 0.82;
       display: block;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     #sidebar-header p {
@@ -1218,7 +1217,6 @@
       #sidebar-header h1 { font-size: 18px !important; line-height: 1.2; }
       #sidebar-header p { display: none; }
       #about-link { display: none; }
-      .site-bear { height: 44px; }
     }
 
     /* ── Mobile bottom sheet ── */
@@ -2465,7 +2463,7 @@
     const headline = rate != null
       ? (rate >= 100
           ? rmDisp + " " + S.removed
-          : ratePhrase(rate, p._isFloor, S, p._perVisible) + " " + S.removed)
+          : ratePhrase(rate, p._isFloor, S, p._perVisible))
       : rmDisp + " " + S.removed;
 
     const rateStr = rate != null
