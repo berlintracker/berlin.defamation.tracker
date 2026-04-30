@@ -228,6 +228,10 @@
       font-weight: 500;
       line-height: 1.15;
       letter-spacing: -.02em;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       color: var(--ink);
       margin-top: 14px;
     }
@@ -235,6 +239,15 @@
     /* Bilingual title — both lines always visible */
     .title-en { color: var(--ink); display: block; }
     .title-de { color: var(--accent); display: block; font-size: .88em; margin-top: 3px; }
+
+    .site-bear {
+      height: 72px;
+      width: auto;
+      flex-shrink: 0;
+      opacity: 0.82;
+      display: block;
+      margin-top: 2px;
+    }
 
     #sidebar-header p {
       font-size: 13px;
@@ -1205,6 +1218,7 @@
       #sidebar-header h1 { font-size: 18px !important; line-height: 1.2; }
       #sidebar-header p { display: none; }
       #about-link { display: none; }
+      .site-bear { height: 44px; }
     }
 
     /* ── Mobile bottom sheet ── */
@@ -1426,8 +1440,11 @@
       </div>
     </div>
     <h1 id="sidebar-title" onclick="resetHome()" style="cursor:pointer;" title="Reset to city view">
-      <span class="title-en">Berlin Trust Index</span>
-      <span class="title-de">Berlin Vertrauensindex</span>
+      <span>
+        <span class="title-en">Berlin Trust Index</span>
+        <span class="title-de">Berlin Vertrauensindex</span>
+      </span>
+      <img src="./bear.png" class="site-bear" alt="" aria-hidden="true">
     </h1>
     <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
   </div>
