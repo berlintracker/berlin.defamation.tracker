@@ -3053,8 +3053,11 @@
     // #4: skip story on first pan — reader just finished onboarding, give them a beat
     if (_panCount === 1) return;
 
-    // #3: editorial every 7th pan (was 4th) — data stories are the substance, editorial is punctuation
-    if (_panCount % 7 === 0) { fireEditorial(); return; }
+    // Fire a story only every 3rd pan — prevents card from cycling on every move
+    if (_panCount % 3 !== 0) return;
+
+    // Editorial every 7th pan (was 4th) — data stories are the substance, editorial is punctuation
+    if (_panCount % 21 === 0) { fireEditorial(); return; }
 
     const stories = STAT_STORIES[currentLang] || STAT_STORIES.en;
     const seenHere = _seenByDistrict[v.district] || new Set();
@@ -3139,7 +3142,7 @@
   const OB_BEATS = [
     {
       kicker: '',
-      head: "Germany's hate-speech law lets anyone pay <strong>€49</strong> to have a Google review flagged.",
+      head: "Germany's hate-speech law lets anyone pay<br><strong>€49</strong> to have a Google review flagged.",
       note: 'The platform has <strong>24 hours</strong> to remove it.',
       dim: .82, markers: false, counter: false,
     },
