@@ -1849,6 +1849,10 @@
     if (l.includes('biergarten'))              return 'Beer Gardens';
     if (l.includes('brauerei'))                return 'Breweries';
     if (l.includes('hotel'))                   return 'Hotels';
+    if (l.includes('fitness') || l.includes('gym') || l.includes('crossfit') || l.includes('pilates') || l.includes('yoga')) return 'Gyms & Studios';
+    if (l.includes('kampfsport') || l.includes('boxclub') || l.includes('sportschule')) return 'Martial Arts';
+    if (l.includes('museum') || l.includes('galerie') || l.includes('kunsthalle')) return 'Museums & Galleries';
+    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub')) return 'Clubs';
     return 'Venues';
   }
 
@@ -2178,9 +2182,11 @@
 
       let rate = null;
       if (p.total_reviews && p.removed_min) {
-        // Use removed_min — conservative lower bound, consistent with all other displays.
+        // "1 in N" = proportion of all-time reviews removed.
+        // Denominator = visible + removed. Use removed_max for "up to", removed_min for floor "at least".
         // total_reviews = visible reviews after removals (Google excludes removed from its count).
-        rate = Math.round((p.removed_min / p.total_reviews) * 1000) / 10;
+        const r = p._isFloor ? p.removed_min : (p.removed_max || p.removed_min);
+        rate = Math.round((r / (p.total_reviews + r)) * 1000) / 10;
       } else if (p.removal_rate != null) {
         rate = Math.round(p.removal_rate * 1000) / 10;
       }
@@ -3824,7 +3830,7 @@
           el.setAttribute('role', 'option');
           el.dataset.idx = hits.length + i;
           const badge = currentLang === 'de' ? 'keine Entfernungen' : 'no removals';
-          const typeLabel = p.venue_type ? categoryLabel(p.venue_type, currentLang) : '';
+          const typeLabel = categoryLabel((p.venue_type && p.venue_type !== 'other') ? p.venue_type : (p.category || ''), currentLang);
           const starLabel = p.star_rating ? ` · ${p.star_rating}★` : '';
           el.innerHTML =
             `<span class="vsd-name">${esc(p.name)}<span class="vsd-clean-badge">${badge}</span></span>`

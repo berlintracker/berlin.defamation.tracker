@@ -39,9 +39,11 @@ We systematically collected this disclosure data across venues in central Berlin
 
 In practice this means: if a venue shows 196 reviews and a banner saying 101–150 were removed, there were originally 297–346 reviews ever submitted, and 196 remain visible today.
 
-**Removal rate.** Removal rate = removed_min ÷ visible_reviews
+**Removal rate.** Removal rate = removed ÷ (visible + removed)
 
-Where removed_min is the lower bound of the disclosed range (e.g. 101 for "101–150"), and visible_reviews is Google's current displayed count. Using removed_min gives a conservative lower bound — the true rate is somewhere between removed_min/visible and removed_max/visible.
+This expresses the proportion of all reviews ever submitted that were removed — the most natural reading of "1 in N reviews removed." The denominator is the estimated total ever submitted (visible reviews plus removed reviews).
+
+For the "up to" figure we use removed_max; for floor venues (250+) we use removed_min as a conservative lower bound.
 
 For venues at the 250+ ceiling, removed_min = 250 and the true figure is unknown — rates for these venues are marked as minimums.
 
