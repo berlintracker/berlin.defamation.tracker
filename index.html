@@ -1637,10 +1637,11 @@
       // list
       rateUnk:     'rate unknown',
       atLeast:     'at least ',
+      atMost:      'at most ',
       upTo:        'up to ',
       oneInN:      n => '1 in ' + n + ' reviews',
       mostReviews: 'the majority of reviews',
-      perVisible:  y => y + ' removed per visible rating',
+      perVisible:  y => '1 in ' + (1 + y).toFixed(1) + ' reviews still showing',
       removed:     'removed',
       rate:        'rate',
       removedOf:   n => 'removed, ' + n + ' remaining',
@@ -1686,10 +1687,11 @@
       // list
       rateUnk:     'Rate unbekannt',
       atLeast:     'mindestens ',
+      atMost:      'höchstens ',
       upTo:        'bis zu ',
       oneInN:      n => '1 von ' + n + ' Bewertungen',
       mostReviews: 'die meisten Bewertungen',
-      perVisible:  y => y + ' pro sichtbarer Bewertung entfernt',
+      perVisible:  y => '1 von ' + (1 + y).toFixed(1) + ' Bewertungen noch sichtbar',
       removed:     'entfernt',
       rate:        'Rate',
       removedOf:   n => 'entfernt, ' + n + ' verbleibend',
@@ -2597,10 +2599,10 @@
     return _sessionTypeCounts[type];
   }
 
-  // "1 in N reviews" phrase — when removed > visible, switches to "[y] removed per visible rating"
+  // "1 in N reviews" phrase — when removed > visible, switches to "only 1 in X reviews still showing"
   function ratePhrase(rate, isFloor, S, perVisible) {
-    if (perVisible != null) {
-      return (isFloor ? S.atLeast : '') + S.perVisible(perVisible);
+    if (perVisible != null && !isFloor) {
+      return S.perVisible(perVisible);
     }
     const n = Math.round(100 / rate);
     return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n) + ' ' + S.removed;
