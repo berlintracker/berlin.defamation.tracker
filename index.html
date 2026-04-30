@@ -953,43 +953,18 @@
 
     .about-body + .about-body { margin-top: 8px; }
 
-    /* Accordion sections in About modal */
-    #about-modal details {
-      border-top: 1px solid var(--rule);
-      padding: 2px 0;
-    }
-    #about-modal details:last-of-type { border-bottom: 1px solid var(--rule); }
-    #about-modal summary {
+    /* Flat content blocks in About modal */
+    .about-block { margin-top: 18px; }
+    .about-block-head {
       font-family: "Inter", sans-serif;
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: .1em;
       color: var(--muted);
       font-weight: 600;
-      cursor: pointer;
-      list-style: none;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 14px 0;
-      user-select: none;
+      margin-bottom: 6px;
     }
-    #about-modal summary::-webkit-details-marker { display: none; }
-    #about-modal summary::before {
-      content: "▶";
-      font-size: 7px;
-      color: var(--muted);
-      transition: transform .15s ease;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-    #about-modal details[open] > summary::before { transform: rotate(90deg); }
-    #about-modal details > .about-body:first-of-type { margin-top: 0; }
-    #about-modal .about-section-body {
-      padding-bottom: 16px;
-      overflow: hidden;
-      transition: height 0.22s ease;
-    }
+    .about-block .about-body { margin-top: 0; }
 
     .about-footer {
       margin-top: 22px;
@@ -2134,19 +2109,7 @@
     });
 
     // Animate about modal accordions
-    document.querySelectorAll('#about-modal details').forEach(details => {
-      const summary = details.querySelector('summary');
-      const body    = details.querySelector('.about-section-body');
-      if (!summary || !body) return;
 
-      summary.addEventListener('click', e => {
-        e.preventDefault();
-        if (details.open) {
-          // Closing: lock height then animate to 0
-          body.style.height = body.scrollHeight + 'px';
-          requestAnimationFrame(() => {
-            body.style.height = '0px';
-          });
           body.addEventListener('transitionend', () => {
             details.removeAttribute('open');
             body.style.height = '';
@@ -3536,48 +3499,32 @@
       Berlin Trust Index<br><span class="at-de">Berlin Vertrauensindex</span>
     </div>
 
-    <p class="about-lede">In April 2026, Google began disclosing something unusual on German business listings: how many customer reviews had been removed following defamation complaints. This map collects those disclosures across Berlin — restaurants, bars, cafés, hotels, gyms, hair salons, clubs, and more.</p>
+    <p class="about-lede">A map of Google Maps reviews removed from Berlin venues after defamation complaints, using §&nbsp;NetzDG.</p>
 
-    <details>
-      <summary>How it works</summary>
-      <div class="about-section-body">
-        <p class="about-body">Germany's anti-hate-speech law (NetzDG) requires platforms to act on reported content within 24 hours — or face fines up to €50 million. Legal service firms have found a way in. For as little as €49, they file a defamation complaint against a customer review on a business's behalf. Google processes it. The reviewer often doesn't know it happened. The business gets a cleaner rating.</p>
-        <p class="about-body">The complaint is anonymous. It's signed "gez. Rechtsanwalt" — signed, a lawyer. No name. No firm. You can find the removal in your comment history. You can't find out who put it there.</p>
-      </div>
-    </details>
+    <div class="about-block">
+      <div class="about-block-head">How it works</div>
+      <p class="about-body">Germany's NetzDG law requires platforms to remove flagged content within 24 hours or face fines up to €50 million. Defamation is covered. Legal services file complaints from €49. Google processes them. The reviewer often doesn't know.</p>
+    </div>
 
-    <details>
-      <summary>What this data does and doesn't show</summary>
-      <div class="about-section-body">
-        <p class="about-body">This map surfaces Google's own disclosures — nothing private was accessed. A high removal count means defamation complaints were filed and Google processed them. It does not mean the business acted wrongfully.</p>
-        <p class="about-body">Many venues on this map are places we genuinely love. The problem isn't them — it's a legal system that makes removal cheap, fast, and anonymous.</p>
-        <p class="about-body">The caveat cuts both ways: a business may have been the victim of a coordinated negative review campaign and legitimately sought help. The data shows volume only.</p>
-      </div>
-    </details>
+    <div class="about-block">
+      <div class="about-block-head">The data</div>
+      <p class="about-body" id="about-numbers-text"></p>
+      <p class="about-body">Google discloses removal counts in bands (1, 2–5, 6–10 … "over 250"). Counts cover the last 365 days and exclude appeals. Citywide totals use the lower bound of each band; venue figures show the upper bound. Both are conservative — Google stops counting above 250.</p>
+    </div>
 
-    <details>
-      <summary>The numbers</summary>
-      <div class="about-section-body">
-        <p class="about-body" id="about-numbers-text">3,678 Berlin venues checked so far. 672 with recorded removals. At least 27,327 reviews removed — likely more, since Google stops disclosing above 250 per venue.</p>
-        <p class="about-body">Google only counts removals processed <strong>in the last 365 days</strong>, and only those made <strong>due to defamation complaints</strong> that were not subsequently reversed on appeal. The totals shown here are therefore a lower bound — they exclude older removals and any that were appealed.</p>
-        <p class="about-body">Google discloses in bands rather than exact counts. Ranges: 1, 2–5, 6–10, 11–20, 21–50, 51–100, 101–150, 151–200, 201–250, and "over 250." The <strong>citywide total</strong> sums the lower bound of each band — it is the minimum number of removals that Google's disclosures confirm, making it a conservative floor. <strong>Individual venue figures</strong> show the upper bound of their band (e.g. "up to 100 removed") as the closest single-number estimate, since the true count sits somewhere within the range and the upper end is the worst-case. Venues at "over 250" are treated as exactly 250 in all calculations, so their contribution to any total is also a minimum.</p>
-      </div>
-    </details>
-
-    <details>
-      <summary>About</summary>
-      <div class="about-section-body">
-        <p class="about-body">Independent investigation. No advertisers, no sponsors.</p>
-        <p class="about-body">Scraping approach informed by <a href="https://github.com/mb4umi/maps-deleted-reviews" target="_blank">mb4umi/maps-deleted-reviews</a>.</p>
-      </div>
-    </details>
+    <div class="about-block">
+      <div class="about-block-head">Caveats</div>
+      <p class="about-body">Google's own disclosures. Nothing private. High counts mean complaints were filed and processed — not that a venue did anything wrong.</p>
+    </div>
 
     <div class="about-footer">
-      <a href="https://berlintrustindex.com/methodology.md" target="_blank">How we collected this data →</a>
+      Independent. No advertisers.
+      &nbsp;·&nbsp;
+      <a href="https://berlintrustindex.com/methodology.html" target="_blank">Methodology</a>
       &nbsp;·&nbsp;
       <a href="https://github.com/berlintracker/berlin.defamation.tracker" target="_blank">GitHub</a>
       &nbsp;·&nbsp;
-      <a id="contact-link" href="#">Get In Touch</a>
+      <a id="contact-link" href="#">Contact</a>
     </div>
   </div>
 </div>
