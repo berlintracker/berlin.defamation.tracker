@@ -2220,7 +2220,7 @@
     // Max = sum of removed_max for capped venues; floor cases (250+) have removed_max = null
     // so we use removed_min as a conservative stand-in — the real max is unknowably higher.
     const totalRemovedMax = allData.reduce((s, p) => s + (p.removed_max != null ? p.removed_max : (p.removed_min || 0)), 0);
-    window._totalRemovedMin = totalRemoved;
+    window._totalRemovedMin = meta.total_removed_min || totalRemoved;
     window._totalRemovedMax = totalRemovedMax;
     const locale = currentLang === 'de' ? 'de' : 'en';
     const ctMin = document.getElementById('hs-citywide-min');
