@@ -1,0 +1,3991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berlin Trust Index</title>
+  <meta name="description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
+  <meta property="og:title" content="Berlin Trust Index">
+  <meta property="og:description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
+  <meta property="og:image" content="https://berlintracker.github.io/berlin.defamation.tracker/og.png">
+  <meta property="og:url" content="https://berlintracker.github.io/berlin.defamation.tracker/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Berlin Trust Index">
+  <meta name="twitter:description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
+  <meta name="twitter:image" content="https://berlintracker.github.io/berlin.defamation.tracker/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script>
+    // ?reset=1 clears the seen_intro cookie — use for testing the onboarding
+    if(new URLSearchParams(location.search).get('reset')==='1')document.cookie='seen_intro=;max-age=0;path=/';
+    if(!document.cookie.includes('seen_intro=1'))document.documentElement.classList.add('ob-start');
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <style>
+    :root {
+      /* Colour system */
+      --ink:         #343230;   /* primary text */
+      --ink-2:       #6c6a66;   /* secondary text */
+      --muted:       #8c877f;   /* muted / labels */
+      --paper:       #f6f4ef;   /* page background */
+      --paper-card:  #faf9f6;   /* card surfaces */
+      --rule:        #e8e3da;   /* borders / dividers */
+      --accent:      #b24a3a;   /* editorial red */
+
+      /* Semantic aliases (keep old names for compatibility) */
+      --bg-main:     var(--paper);
+      --bg-card:     var(--paper-card);
+      --bg-overlay:  rgba(250,249,246,0.92);
+      --text-primary:   var(--ink);
+      --text-secondary: var(--ink-2);
+      --text-muted:     var(--muted);
+      --border-subtle:  var(--rule);
+
+      /* Severity colours */
+      --sev-1: #bdbbb4;
+      --sev-2: #5a7ea6;
+      --sev-3: #c49a3a;
+      --sev-4: #b24a3a;
+      --sev-5: #7c1f1f;
+
+      /* Vertical rhythm — base unit 8px */
+      --space-1: 6px;
+      --space-2: 12px;
+      --space-3: 18px;
+      --space-4: 24px;
+
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.06);
+      --ease-editorial: cubic-bezier(.22,.61,.36,1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      /* zoom: 0.9 scales the whole page visually but DOES NOT affect CSS px values.
+         Side effect: getBoundingClientRect() returns visual (zoomed) pixels.
+         Always use offsetHeight / offsetWidth for layout measurements in JS — never getBoundingClientRect(). */
+      zoom: 0.9;
+      background: var(--bg-main); /* prevents white strip at zoom seam */
+    }
+
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      height: calc(100vh / 0.9); /* compensate zoom so body fills the full viewport */
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── No-flash sidebar hide for first-time visitors ── */
+    html.ob-start #sidebar {
+      width: 0 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+      opacity: 0 !important;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 480px;
+      min-width: 480px;
+      background: var(--bg-main);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width .55s var(--ease-editorial), min-width .55s var(--ease-editorial);
+    }
+
+    #sidebar-header {
+      padding: 20px 28px 20px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    /* ── Top utility bar: search + lang ── */
+    #sidebar-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Venue search ── */
+    #venue-search-wrap {
+      position: relative;
+      flex: 1;
+    }
+    #venue-search-input {
+      width: 100%;
+      padding: 6px 10px 6px 30px;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      transition: background .2s, border-color .2s;
+    }
+    #venue-search-input::placeholder { color: var(--muted); }
+    #venue-search-input:focus {
+      background: rgba(255,255,255,.92);
+      border-color: rgba(0,0,0,.18);
+    }
+    #venue-search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      z-index: 1;
+      display: block;
+      flex-shrink: 0;
+    }
+    /* suppress webkit's own search icon */
+    #venue-search-input::-webkit-search-decoration,
+    #venue-search-input::-webkit-search-cancel-button { display: none; }
+    #venue-search-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.13);
+      overflow: hidden;
+      z-index: 600;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    #venue-search-dropdown.open { display: block; }
+    .vsd-item {
+      display: flex;
+      flex-direction: column;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: background .12s;
+      border-bottom: 1px solid var(--rule);
+    }
+    .vsd-item:last-child { border-bottom: none; }
+    .vsd-item:hover, .vsd-item.focused { background: rgba(0,0,0,.04); }
+    .vsd-name {
+      font-family: "Inter", sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .vsd-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .vsd-item.vsd-clean .vsd-name { opacity: 0.7; }
+    .vsd-clean-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(30,160,90,.12);
+      color: #1a8a55;
+      margin-left: 5px;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+    html[data-theme="dark"] .vsd-clean-badge { background: rgba(30,160,90,.22); color: #4ecf8a; }
+    .vsd-footer {
+      padding: 8px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+    .vsd-empty {
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    #sidebar-header h1 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      margin-top: 14px;
+    }
+
+    /* Bilingual title — both lines always visible */
+    .title-en { color: var(--ink); display: block; }
+    .title-de { color: var(--accent); display: block; font-size: .88em; margin-top: 3px; }
+
+    #sidebar-header p {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.5;
+      margin-top: 10px;
+      margin-bottom: var(--space-1);
+    }
+
+    #sidebar-header a {
+      font-size: 12px;
+      color: var(--ink-2);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    #sidebar-header a:hover { color: var(--ink); }
+
+    /* ── Language Switcher — globe + EN / DE inline ── */
+    .lang-switch {
+      display: inline-flex;
+    }
+
+    .lang-trigger {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 10px;
+      transition: background .25s var(--ease-editorial);
+    }
+
+    .lang-trigger:hover { background: rgba(255,255,255,.9); }
+
+    .lang-globe {
+      width: 13px;
+      height: 13px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .lang-opt {
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .lang-opt:hover { color: var(--ink); }
+    .lang-opt.active { font-weight: 700; color: var(--ink); }
+
+    .lang-sep {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1;
+      user-select: none;
+    }
+
+    /* Tabs */
+    #modes {
+      display: flex;
+      padding: 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .mode-btn {
+      flex: 1;
+      text-align: center;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 14px 12px;
+      font-family: "Inter", sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color .2s, border-color .2s;
+    }
+
+    .mode-btn:hover { color: var(--text-primary); }
+    .mode-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* List */
+    #list { flex: 1; overflow-y: auto; }
+    #list::-webkit-scrollbar { width: 3px; }
+    #list::-webkit-scrollbar-track { background: transparent; }
+    #list::-webkit-scrollbar-thumb { background: var(--border-subtle); }
+
+    .list-item {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: 0 14px;
+      padding: 20px 28px 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background .2s var(--ease-editorial);
+      align-items: center;
+    }
+
+    .list-item:hover { background: rgba(0,0,0,0.02); }
+    .list-item.active { background: rgba(178,74,58,0.04); }
+
+    .li-rank {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--muted);
+      text-align: center;
+      padding-top: 2px;
+    }
+    .li-main { min-width: 0; align-self: start; }
+    .li-name {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .li-area { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .li-stat { font-size: 13px; font-weight: 600; color: var(--accent); }
+    .li-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .li-count { text-align: right; padding-top: 2px; }
+    .li-num {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--ink);
+      display: block;
+      letter-spacing: -.02em;
+    }
+    .li-label { font-size: 11px; color: var(--muted); display: block; margin-top: 3px; }
+
+    .list-footnote {
+      padding: 14px 28px;
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* ── Map area ── */
+    #map-wrap { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+
+    /* Warm wash overlay — quiets map detail, makes markers pop */
+    .map-wash {
+      position: absolute;
+      inset: 0;
+      background: rgba(250, 249, 246, 0.18);
+      pointer-events: none;
+      z-index: 250; /* above tile pane (200), below overlay/marker panes (400+) */
+    }
+
+    /* ── Leaflet popup overrides ── */
+    /* Leaflet's default popup pane z-index is 700, which puts it BEHIND #map-overlays (z-index: 1000).
+       Bumping to 1100 ensures popups always render on top of the stat card and filter pills. */
+    .leaflet-popup-pane { z-index: 1100 !important; }
+    .bti-popup .leaflet-popup-content-wrapper {
+      font-family: "Inter", system-ui, sans-serif;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12), 0 1px 0 rgba(0,0,0,0.06);
+      overflow: hidden;
+      background: #faf9f6;
+    }
+    .bti-popup .leaflet-popup-content {
+      margin: 0;
+      width: 300px !important;
+    }
+    .bti-popup .leaflet-popup-content > div { padding: 16px; }
+    .bti-popup .leaflet-popup-tip { background: #faf9f6; }
+    .bti-popup .leaflet-popup-close-button {
+      font-size: 18px;
+      color: #8c877f;
+      top: 16px; right: 16px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .bti-popup details { margin-bottom: 12px; }
+    .bti-popup summary {
+      font-size: 10px; color: #8c877f; text-transform: uppercase;
+      letter-spacing: .07em; cursor: pointer; list-style: none;
+      display: flex; align-items: center; gap: 5px; user-select: none;
+      margin-bottom: 6px;
+    }
+    .bti-popup summary::-webkit-details-marker { display: none; }
+    .bti-popup summary::before {
+      content: "▶";
+      font-size: 8px; color: #8c877f;
+      transition: transform .15s ease;
+      display: inline-block;
+    }
+    .bti-popup details[open] > summary::before { transform: rotate(90deg); }
+    /* Override Leaflet default marker cluster colours */
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+      background-color: rgba(178,74,58,0.2);
+    }
+    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+      background-color: rgba(178,74,58,0.75);
+      color: #fff;
+      font-family: "Inter", system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .leaflet-control-zoom { border: none !important; }
+    .leaflet-control-zoom a {
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+      border: 1px solid #e8e3da !important;
+      color: #22221f !important;
+      font-weight: 500;
+    }
+
+    /* ── Overlays ── */
+    #map-overlays {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .card {
+      background: var(--bg-overlay);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      border-radius: 12px;
+      pointer-events: auto;
+    }
+
+    #headline-stat {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 20px 22px;
+      max-width: 320px;
+    }
+
+    /* ── Stat card two-zone layout ── */
+
+    /* Shared kicker */
+    .kicker {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #8c877f;
+      font-weight: 500;
+    }
+
+    /* ── Zone 1: Persistent area counter ── */
+    #hs-persist { display: flex; flex-direction: column; gap: 3px; }
+
+    /* Kicker + dot + area name on one line */
+    #hs-persist-header {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 14px;
+    }
+    /* Kicker and area share identical small-caps style */
+    #hs-persist-kicker,
+    #hs-persist-area {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 11px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+      line-height: 1;
+    }
+    #hs-persist-area {
+      transition: opacity .15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+    #hs-persist-area.updating { opacity: 0; }
+
+    .persist-dot {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0;
+      margin: 0 6px;
+      line-height: 1;
+    }
+    #hs-persist-number {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: clamp(44px, 5vw, 64px);
+      font-weight: 600;
+      color: #2a2826;
+      line-height: .92;
+      letter-spacing: -0.02em;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    #hs-persist-number.updating { opacity: 0; transform: translateY(4px); }
+
+    #hs-persist-label {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-top: 5px;
+    }
+
+    /* ── Divider ── */
+    .hs-zone-divider {
+      border: none;
+      border-top: 1px solid #e4dfd6;
+      margin: 14px 0 12px;
+    }
+
+    /* ── Zone 2: Cycling factoid ── */
+    #hs-fact-text {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.42;
+      max-width: 26ch;
+      transition: opacity .2s ease;
+    }
+    #hs-fact-text br { display: block; content: ""; margin-top: 6px; }
+    #hs-fact-text.updating { opacity: 0; }
+    html[lang="de"] #hs-fact-text { max-width: 24ch; }
+
+    /* Venue / number title line */
+    .fact-title {
+      display: block;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    /* Secondary stat or descriptor line */
+    .fact-body {
+      display: block;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.5;
+      margin-top: 3px;
+    }
+    /* Star ratings within a fact */
+    .fact-star {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    /* Italic emphasis (foreign words, quoted phrases) */
+    .fact-em { font-style: italic; }
+    /* Bold emphasis within editorial prose */
+    .fact-strong { font-weight: 600; color: var(--ink); }
+    /* Inline number/figure emphasis */
+    .fact-num { font-weight: 600; font-size: 1.08em; color: var(--ink); font-family: "Source Serif 4", Georgia, serif; }
+    /* Qualifying aside — smallest line, muted */
+    .fact-aside {
+      display: block;
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+    /* Venue name link — subtle, no underline until hover */
+    .fact-venue-link { color: inherit; text-decoration: none; }
+    .fact-venue-link:hover .fact-title {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ── Footer ── */
+    #hs-footer {
+      padding-top: 10px;
+      border-top: 1px solid #e4dfd6;
+      margin-top: 12px;
+    }
+
+    .disclosure {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 10px;
+      color: #a09b94;
+      line-height: 1.4;
+    }
+
+    #map-key {
+      position: absolute;
+      bottom: 36px;
+      right: 16px;
+      padding: 14px 16px;
+      min-width: 170px;
+      background: rgba(250,249,246,.92);
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    #map-key h3 {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .key-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--text-secondary);
+    }
+    .key-row-text { display: flex; flex-direction: column; gap: 1px; }
+    .key-sev-name { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.3; }
+    .key-sev-range { font-size: 11px; color: var(--muted); }
+
+    .key-row:last-of-type { margin-bottom: 0; }
+    .key-row[data-sev] { border-radius: 5px; padding: 3px 5px; margin-left: -5px; cursor: pointer; transition: background .15s; }
+    .key-row[data-sev]:hover { background: rgba(0,0,0,0.04); }
+    .key-row[data-sev].active { background: rgba(178,74,58,0.08); color: var(--accent); }
+
+    .key-shape {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .key-disclaimer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── Cluster toggle ── */
+    .cluster-toggle {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .cluster-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .cluster-toggle input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 34px;
+      height: 18px;
+      background: #d9d6cf;
+      border-radius: 999px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background .25s var(--ease-editorial);
+      cursor: pointer;
+    }
+
+    .cluster-toggle input::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+      transition: transform .25s var(--ease-editorial);
+    }
+
+    .cluster-toggle input:checked { background: #1c1c1c; }
+    .cluster-toggle input:checked::after { transform: translateX(16px); }
+
+    /* ── Venue type pill filters ── */
+    #venue-filters {
+      position: absolute;
+      top: 16px;
+      /* sits right of stat card (left:16 + max-width:320 + gap:16) */
+      left: 352px;
+      right: 200px; /* clears about button */
+      pointer-events: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* Wide: toggle hidden, pills inline */
+    #filter-toggle { display: none; }
+    #filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+
+    /* Narrow desktop: toggle visible, pills become a dropdown */
+    @media (max-width: 1280px) {
+      #filter-toggle {
+        display: flex;
+        pointer-events: auto;
+      }
+      #filter-pills {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        flex-direction: column;
+        gap: 4px;
+        background: var(--bg-overlay);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 8px;
+        box-shadow: var(--shadow-soft);
+        min-width: 150px;
+        pointer-events: auto;
+        z-index: 50;
+      }
+      #venue-filters.filter-open #filter-pills { display: flex; }
+      #venue-filters.filter-open #filter-chevron { transform: rotate(180deg); }
+      /* Pills inside dropdown take full width */
+      #venue-filters.filter-open .venue-pill { justify-content: flex-start; width: 100%; }
+    }
+
+    .venue-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px 5px 9px;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      border-radius: 20px;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: all .2s var(--ease-editorial);
+      white-space: nowrap;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .venue-pill:hover {
+      background: rgba(255,255,255,.95);
+      color: var(--ink);
+    }
+
+    .venue-pill.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .venue-pill svg {
+      flex-shrink: 0;
+      transition: inherit;
+    }
+
+    /* ── About button + modal ── */
+    #about-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: all .2s var(--ease-editorial);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #about-btn:hover { background: rgba(255,255,255,.95); color: var(--ink); }
+
+    #about-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(34,34,31,.42);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+
+    #about-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #about-modal {
+      background: var(--paper-card);
+      border: 1px solid var(--rule);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.16), 0 1px 0 rgba(0,0,0,.06);
+      padding: 36px 40px 32px;
+      max-width: 520px;
+      width: calc(100% - 48px);
+      max-height: 82vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(8px);
+      transition: transform .28s var(--ease-editorial);
+    }
+
+    #about-overlay.open #about-modal {
+      transform: translateY(0);
+    }
+
+    #about-modal::-webkit-scrollbar { width: 3px; }
+    #about-modal::-webkit-scrollbar-thumb { background: var(--rule); }
+
+    #about-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+      border-radius: 6px;
+      transition: background .2s, color .2s;
+    }
+
+    #about-close:hover { background: rgba(0,0,0,.06); color: var(--ink); }
+
+    .about-title {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    .about-title .at-de { color: var(--accent); }
+
+    .about-lede {
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.65;
+      margin-bottom: 22px;
+    }
+
+    .about-body {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.65;
+    }
+
+    .about-body + .about-body { margin-top: 8px; }
+
+    /* Accordion sections in About modal */
+    #about-modal details {
+      border-top: 1px solid var(--rule);
+      padding: 2px 0;
+    }
+    #about-modal details:last-of-type { border-bottom: 1px solid var(--rule); }
+    #about-modal summary {
+      font-family: "Inter", sans-serif;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 14px 0;
+      user-select: none;
+    }
+    #about-modal summary::-webkit-details-marker { display: none; }
+    #about-modal summary::before {
+      content: "▶";
+      font-size: 7px;
+      color: var(--muted);
+      transition: transform .15s ease;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    #about-modal details[open] > summary::before { transform: rotate(90deg); }
+    #about-modal details > .about-body:first-of-type { margin-top: 0; }
+    #about-modal .about-section-body {
+      padding-bottom: 16px;
+      overflow: hidden;
+      transition: height 0.22s ease;
+    }
+
+    .about-footer {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .about-footer a {
+      color: var(--ink-2);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      transition: color .15s, border-color .15s;
+    }
+
+    .about-footer a:hover { color: var(--ink); border-bottom-color: var(--ink-2); }
+
+    /* ── Onboarding overlay ── */
+    #ob-container {
+      position: absolute; inset: 0; z-index: 500;
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    #ob-dim {
+      position: absolute; inset: 0;
+      background: #000; opacity: .82;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+    #ob-panel {
+      font-family: "Source Serif 4", Georgia, serif;
+      position: relative; z-index: 1;
+      max-width: 920px; width: calc(100% - 48px);
+      background: rgba(246,244,239,0.97);
+      border: 1px solid var(--rule);
+      border-radius: 20px;
+      padding: 80px 80px 64px;
+      pointer-events: auto;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.20), 0 2px 0 rgba(0,0,0,0.06);
+    }
+    .ob-kicker.ob-kicker--serif {
+      font-family: "Source Serif 4", Georgia, serif !important;
+      font-size: 22px; font-style: italic; font-weight: 400;
+      color: var(--ink-2); text-transform: none; letter-spacing: 0;
+      margin-bottom: 28px; line-height: 1.4;
+    }
+    @keyframes sbIn {
+      from { opacity: 0; transform: translateX(-14px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .sb-in { animation: sbIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    #ob-stage { transition: opacity .36s ease, transform .36s ease; }
+    #ob-stage.ob-out { opacity: 0; transform: translateY(12px); }
+    .ob-kicker {
+      font-family: "Inter", sans-serif; font-size: 11px; font-weight: 500;
+      letter-spacing: .13em; text-transform: uppercase; color: var(--accent);
+      min-height: 16px; margin-bottom: 28px;
+    }
+    .ob-head {
+      font-family: "Source Serif 4", Georgia, serif; font-size: 34px;
+      font-weight: 400; line-height: 1.35; color: var(--ink); margin-bottom: 28px;
+    }
+    .ob-head em { font-style: italic; }
+    .ob-head strong { color: var(--accent); font-weight: 400; }
+    .ob-head br { display: block; margin-top: 1.1em; }
+    .ob-gap { display: block; height: 1em; }
+    .ob-big { font-size: 1.2em; font-weight: 600; font-style: normal; }
+    .ob-accent { color: var(--accent); font-weight: 600; }
+    .ob-prequote {
+      font-family: "Source Serif 4", Georgia, serif; font-size: 16px;
+      font-style: italic; font-weight: 400; color: var(--muted);
+      margin-bottom: 52px; line-height: 1.4; display: block;
+    }
+    .ob-closer {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 24px; font-style: normal; font-weight: 400;
+      color: var(--ink); line-height: 1.55;
+      display: block;
+    }
+    .ob-closer strong { font-weight: 600; color: var(--ink); }
+    .ob-closer br { display: block; margin: 0.15em 0; }
+    .ob-note {
+      font-family: "Source Serif 4", Georgia, serif; font-size: 18px;
+      font-style: italic; color: var(--ink-2); line-height: 1.75; margin-bottom: 20px;
+      max-width: 540px; margin-left: auto; margin-right: auto;
+    }
+    .ob-note strong { color: var(--ink); font-weight: 600; font-style: normal; }
+    .ob-note em { font-style: italic; color: var(--ink); }
+    .ob-note-callout {
+      display: block; margin-top: 20px;
+      font-size: 22px; font-style: normal; font-weight: 600;
+      color: var(--ink); line-height: 1.4;
+    }
+    #ob-counter-wrap { margin-bottom: 24px; margin-top: 8px; }
+    .ob-num {
+      font-family: "Source Serif 4", Georgia, serif; font-size: 88px;
+      font-weight: 400; color: var(--ink); letter-spacing: -.03em;
+      line-height: 1;
+    }
+    .ob-num-label {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 18px; font-style: italic;
+      color: var(--ink-2); line-height: 1.4;
+      margin-top: 14px; display: block;
+    }
+    #ob-lb {
+      background: var(--paper); border: 1px solid var(--rule); border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 20px;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity .4s ease, transform .4s ease;
+      text-align: left;
+    }
+    #ob-lb.ob-lb-in { opacity: 1; transform: translateY(0); }
+    .ob-lb-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 5px 0; border-bottom: .5px solid var(--rule);
+      font-family: "Inter", sans-serif; font-size: 12px;
+    }
+    .ob-lb-row:last-child { border: none; }
+    .ob-lb-name { color: var(--ink); }
+    .ob-lb-area { color: var(--muted); font-size: 11px; margin-left: 5px; }
+    .ob-lb-count { color: var(--accent); font-weight: 500; }
+    #ob-nav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding-top: 44px;
+    }
+    .ob-pips { display: flex; gap: 7px; align-items: center; justify-content: center; }
+    .ob-pip {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--rule);
+      transition: background .28s, transform .28s;
+    }
+    .ob-pip.ob-pip-active { background: var(--ink); transform: scale(1.4); }
+    .ob-pip.ob-pip-past   { background: var(--muted); }
+    #ob-skip {
+      font-family: "Inter", sans-serif; font-size: 12px; color: #b0aca5;
+      background: none; border: 1px solid var(--rule); border-radius: 20px;
+      padding: 8px 18px; cursor: pointer; justify-self: start;
+      transition: color .18s, border-color .18s;
+    }
+    #ob-skip:hover { color: var(--ink-2); border-color: var(--ink-2); }
+    #ob-next {
+      font-family: "Inter", sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--ink); background: none;
+      border: 1px solid var(--ink); border-radius: 20px;
+      padding: 9px 24px; cursor: pointer; justify-self: end;
+      transition: background .18s, color .18s;
+    }
+    #ob-next:hover { background: var(--ink); color: var(--paper); }
+
+    /* ── Mobile landscape: left-edge drawer ── */
+    #side-tab { display: none; }
+
+    @media (max-width: 900px) and (orientation: landscape) {
+      body { display: block; overflow: hidden; }
+
+      #map-wrap { position: fixed; inset: 0; z-index: 0; }
+
+      #sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 280px;
+        min-width: 0;
+        height: 100%;
+        max-height: none;
+        border-right: 1px solid var(--rule);
+        border-top: none;
+        border-radius: 0 20px 20px 0;
+        box-shadow: 6px 0 28px rgba(0,0,0,.10);
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform .38s cubic-bezier(.22,.61,.36,1);
+        overflow: hidden;
+      }
+
+      #sidebar.sheet-open { transform: translateX(0); }
+
+      /* Pull tab — sits on left edge, always visible */
+      #side-tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        left: 0; top: 50%;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 56px;
+        background: var(--paper-card);
+        border: 1px solid var(--rule);
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+        box-shadow: 3px 0 12px rgba(0,0,0,.08);
+        z-index: 101;
+        cursor: pointer;
+        transition: transform .38s cubic-bezier(.22,.61,.36,1), opacity .2s;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Tab slides with the drawer when open */
+      #sidebar.sheet-open ~ #map-wrap + #side-tab,
+      body.drawer-open #side-tab {
+        transform: translateY(-50%) translateX(280px);
+      }
+
+      .side-pill {
+        width: 4px;
+        height: 28px;
+        background: var(--rule);
+        border-radius: 2px;
+      }
+
+      /* Portrait handle hidden in landscape */
+      #sheet-handle { display: none !important; }
+
+      #headline-stat { display: none; }
+      #venue-filters { display: none; }
+      #map-key { bottom: 20px; right: 12px; }
+      #about-btn { top: 8px; right: 8px; padding: 5px 9px; font-size: 11px; }
+
+      /* Compact header for short screens */
+      #sidebar-header { padding: 10px 18px 8px; }
+      #sidebar-header h1 { font-size: 18px !important; line-height: 1.2; }
+      #sidebar-header p { display: none; }
+      #about-link { display: none; }
+    }
+
+    /* ── Mobile bottom sheet ── */
+    #sheet-handle { display: none; }
+
+    @media (max-width: 680px) {
+      body { display: block; overflow: hidden; }
+
+      #map-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+      }
+
+      #sidebar {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        width: 100%;
+        min-width: 0;
+        height: 72px;
+        max-height: 90vh;
+        border-right: none;
+        border-radius: 20px 20px 0 0;
+        border-top: 1px solid var(--rule);
+        box-shadow: 0 -6px 28px rgba(0,0,0,.10);
+        z-index: 100;
+        transition: height .38s cubic-bezier(.22,.61,.36,1);
+        overflow: hidden;
+      }
+
+      #sidebar.sheet-open { height: 88vh; }
+
+      #sheet-handle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 20px 8px;
+        cursor: pointer;
+        user-select: none;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .handle-pill {
+        width: 36px;
+        height: 4px;
+        background: var(--rule);
+        border-radius: 2px;
+        margin-bottom: 10px;
+      }
+
+      .handle-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+      }
+
+      #handle-title-mini {
+        font-family: "Source Serif 4", serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ink);
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #handle-stat-mini {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      /* Headline card too wide for mobile — hide it */
+      #headline-stat { display: none; }
+      #venue-filters { display: none; }
+
+      /* Legend repositioned above the sheet handle */
+      #map-key { bottom: 84px; right: 12px; }
+
+      /* About button above legend */
+      #about-btn { top: auto; bottom: calc(84px + 48px + 8px); right: 12px; }
+
+      #about-modal { padding: 28px 24px 24px; }
+    }
+  </style>
+  <script data-goatcounter="https://berlintracker.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+<!-- ── Mobile holding page ───────────────────────────────────────────────── -->
+<div id="mobile-wall" style="display:none">
+  <div class="mw-card">
+    <div class="mw-logo">Berlin<br>Trust Index</div>
+    <p class="mw-sorry" id="mw-sorry"></p>
+    <p class="mw-body" id="mw-body"></p>
+    <form class="mw-form" id="mw-form" action="https://formspree.io/f/xkoywrba" method="POST">
+      <input type="email" name="email" id="mw-email" required autocomplete="email">
+      <button type="submit" id="mw-btn"></button>
+    </form>
+    <p class="mw-thanks" id="mw-thanks" style="display:none"></p>
+  </div>
+</div>
+<style>
+  #mobile-wall {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px 24px;
+    font-family: 'Inter', sans-serif;
+  }
+  .mw-card {
+    max-width: 340px; width: 100%;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .mw-logo {
+    font-family: 'Source Serif 4', serif;
+    font-size: 22px; font-weight: 600; line-height: 1.15;
+    color: var(--ink); letter-spacing: -0.02em;
+    border-bottom: 1.5px solid var(--rule);
+    padding-bottom: 16px; margin-bottom: 4px;
+  }
+  .mw-sorry {
+    font-size: 17px; font-weight: 600; color: var(--ink);
+    margin: 0; line-height: 1.35;
+  }
+  .mw-body {
+    font-size: 14px; color: var(--ink-2); margin: 0; line-height: 1.55;
+  }
+  .mw-form {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .mw-form input[type="email"] {
+    flex: 1; padding: 10px 12px; font-size: 14px;
+    border: 1.5px solid var(--rule); border-radius: 8px;
+    background: var(--paper-card); color: var(--ink);
+    font-family: inherit; outline: none;
+    transition: border-color .2s;
+  }
+  .mw-form input[type="email"]:focus { border-color: var(--accent); }
+  .mw-form button {
+    padding: 10px 16px; font-size: 13px; font-weight: 600;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    white-space: nowrap; transition: opacity .2s;
+  }
+  .mw-form button:hover { opacity: .85; }
+  .mw-thanks {
+    font-size: 14px; color: var(--ink-2); margin: 0;
+  }
+</style>
+<script>
+(function() {
+  var isMobile = window.innerWidth < 768 && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isMobile) return;
+  var de = navigator.language && navigator.language.toLowerCase().startsWith('de');
+  document.getElementById('mobile-wall').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('mw-sorry').textContent  = de ? 'Auf Mobilgeräten leider noch nicht verfügbar 😔' : 'Sorry, this is broken on mobile 😔';
+  document.getElementById('mw-body').textContent   = de ? 'Wir arbeiten daran. Komm auf dem Desktop zurück – oder hinterlass uns deine E-Mail-Adresse und wir melden uns, wenn es so weit ist.' : 'We\'re working on it. Come back on desktop, or leave your email and we\'ll let you know when it\'s ready.';
+  document.getElementById('mw-btn').textContent    = de ? 'Benachrichtigen' : 'Notify me';
+  document.getElementById('mw-email').placeholder  = de ? 'deine@email.de' : 'your@email.com';
+  document.getElementById('mw-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var email = document.getElementById('mw-email').value;
+    fetch(this.action, {
+      method: 'POST', headers: { 'Accept': 'application/json' },
+      body: JSON.stringify({ email: email })
+    }).then(function(r) {
+      document.getElementById('mw-form').style.display = 'none';
+      var t = document.getElementById('mw-thanks');
+      t.textContent = de ? 'Danke – wir melden uns!' : 'Thanks — we\'ll be in touch!';
+      t.style.display = 'block';
+    }).catch(function() {
+      document.getElementById('mw-form').style.display = 'none';
+      var t = document.getElementById('mw-thanks');
+      t.textContent = de ? 'Danke – wir melden uns!' : 'Thanks — we\'ll be in touch!';
+      t.style.display = 'block';
+    });
+  });
+})();
+</script>
+<!-- ── End mobile wall ────────────────────────────────────────────────────── -->
+
+<div id="sidebar">
+  <div id="sheet-handle" aria-label="Toggle panel">
+    <div class="handle-pill"></div>
+    <div class="handle-row">
+      <span id="handle-title-mini">Berlin Trust Index</span>
+      <span id="handle-stat-mini"></span>
+    </div>
+  </div>
+  <div id="sidebar-header">
+    <div id="sidebar-topbar">
+      <!-- Venue search -->
+      <div id="venue-search-wrap">
+        <svg id="venue-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input id="venue-search-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search venues…" aria-label="Search venues" aria-haspopup="listbox" aria-expanded="false"/>
+        <div id="venue-search-dropdown" role="listbox"></div>
+      </div>
+      <!-- Language picker -->
+      <div class="lang-switch" id="lang-switch">
+        <div class="lang-trigger">
+          <svg class="lang-globe" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M8 1.75C8 1.75 5.75 4.25 5.75 8C5.75 11.75 8 14.25 8 14.25M8 1.75C8 1.75 10.25 4.25 10.25 8C10.25 11.75 8 14.25 8 14.25M1.75 8H14.25M2.25 5.25H13.75M2.25 10.75H13.75" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span class="lang-opt active" data-lang="en" id="lang-en">EN</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-opt" data-lang="de" id="lang-de">DE</span>
+        </div>
+      </div>
+    </div>
+    <h1 id="sidebar-title" onclick="resetHome()" style="cursor:pointer;" title="Reset to city view">
+      <span class="title-en">Berlin Trust Index</span>
+      <span class="title-de">Berlin Vertrauensindex</span>
+    </h1>
+    <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
+  </div>
+  <div id="modes">
+    <button class="mode-btn active" data-mode="impact">Rating Gap</button>
+    <button class="mode-btn" data-mode="removed">Most Removed</button>
+    <button class="mode-btn" data-mode="rate">Removal Rate</button>
+  </div>
+  <div id="list-header" style="padding:16px 28px 8px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Top 10 in current view</div>
+  <div id="list"></div>
+</div>
+
+<div id="side-tab" aria-label="Toggle panel">
+  <div class="side-pill"></div>
+</div>
+
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="ob-container">
+    <div id="ob-dim"></div>
+    <div id="ob-panel">
+      <div id="ob-stage">
+        <div class="ob-kicker" id="ob-kicker-el"></div>
+        <div class="ob-head" id="ob-head-el"></div>
+        <div id="ob-counter-wrap" style="display:none">
+          <div class="ob-num" id="ob-num-el">0</div>
+          <div class="ob-num-label" id="ob-numlabel-el"></div>
+        </div>
+        <p class="ob-note" id="ob-note-el" style="display:none"></p>
+        <div id="ob-lb" style="display:none"></div>
+      </div>
+      <div id="ob-nav">
+        <button id="ob-skip">skip</button>
+        <div class="ob-pips" id="ob-pips"></div>
+        <button id="ob-next">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-overlays">
+
+    <div id="headline-stat" class="card">
+
+      <!-- Zone 1: Persistent — always on, updates every pan -->
+      <div id="hs-persist">
+        <div id="hs-persist-header">
+          <span id="hs-persist-kicker">In this area</span><span id="hs-persist-dot" class="persist-dot" aria-hidden="true" style="display:none">·</span><span id="hs-persist-area"></span>
+        </div>
+        <div id="hs-persist-number">—</div>
+        <div id="hs-persist-label">removals</div>
+      </div>
+
+      <hr class="hs-zone-divider">
+
+      <!-- Zone 2: Cycling factoid — one prose sentence -->
+      <div id="hs-fact">
+        <p id="hs-fact-text"></p>
+      </div>
+
+      <!-- Citywide total — always shows Berlin-wide removal count, never changes with pan -->
+      <div id="hs-citywide-total" style="display:none; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid #e4dfd6;">
+        <div id="hs-citywide-min" style="font-family:'Inter',system-ui,sans-serif; font-size:11px; font-weight:500; color:var(--ink); letter-spacing:.01em;"></div>
+        <div id="hs-citywide-max" style="font-family:'Inter',system-ui,sans-serif; font-size:10px; color:var(--muted); margin-top:1px;"></div>
+      </div>
+
+      <!-- Footer: data freshness only — disclosure moved to key -->
+      <div id="hs-footer">
+        <div id="hs-disclose" class="disclosure" style="display:none;"></div>
+        <div id="hs-freshness" class="disclosure" style="opacity:0.7;"></div>
+      </div>
+
+      <!-- DEBUG: cycle all story permutations — remove before launch -->
+      <div id="debug-cycle" style="display:none;">
+        <div id="debug-label"></div>
+        <button onclick="debugCycleNext()">→ next story</button>
+        <button onclick="debugCyclePrev()">← prev</button>
+      </div>
+
+    </div><!-- /#headline-stat -->
+
+    <!-- Venue type pill filters — floats between stat card and about button -->
+    <div id="venue-filters">
+
+      <!-- Collapsed state: single toggle button (shown on narrower desktops) -->
+      <button id="filter-toggle" class="venue-pill" aria-expanded="false" aria-haspopup="true">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+          <line x1="1" y1="2.5" x2="11" y2="2.5"/><line x1="2.5" y1="5.5" x2="9.5" y2="5.5"/><line x1="4" y1="8.5" x2="8" y2="8.5"/>
+        </svg>
+        <span id="filter-toggle-label">Filter</span>
+        <svg id="filter-chevron" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transition:transform .2s"><polyline points="1,2 4,6 7,2"/></svg>
+      </button>
+
+      <!-- Pill row (wide) / dropdown panel (narrow) -->
+      <div id="filter-pills">
+        <button class="venue-pill" data-type="restaurant">
+          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="11"/><polyline points="0,1 0,4 2,5.5 4,4 4,1"/><line x1="9" y1="1" x2="9" y2="4.5" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="4.5" x2="9" y2="11"/></svg>Restaurants
+        </button>
+        <button class="venue-pill" data-type="bar">
+          <svg width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,1 Q0,5 5,7 Q10,5 9,1 Z"/><line x1="5" y1="7" x2="5" y2="11"/><line x1="2.5" y1="11" x2="7.5" y2="11"/></svg>Bars
+        </button>
+        <button class="venue-pill" data-type="cafe">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,3 L1,9 Q1,11 3,11 L7,11 Q9,11 9,9 L9,3 Z"/><path d="M9,5 Q12,5 12,7 Q12,9 9,9"/></svg>Cafés
+        </button>
+        <button class="venue-pill" data-type="museum">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="0.5" y1="11.5" x2="12.5" y2="11.5"/><line x1="1.5" y1="5" x2="1.5" y2="11"/><line x1="4.5" y1="5" x2="4.5" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="11" y1="5" x2="11" y2="11"/><polyline points="0.5,5 6.5,1 12.5,5"/></svg>Museums
+        </button>
+        <button class="venue-pill" data-type="club">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="0,6 2,6 3.5,2 5,10 6.5,4 8,8 9.5,6 13,6"/></svg>Clubs
+        </button>
+      </div>
+
+    </div>
+
+    <!-- About button -->
+    <button id="about-btn">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M8 7.5V11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="8" cy="5" r=".8" fill="currentColor"/>
+      </svg>
+      <span id="about-btn-label">About</span>
+    </button>
+
+    <div id="map-key" class="card">
+      <h3 id="key-title">Removal severity key</h3>
+      <div class="key-row" data-sev="1">
+        <div class="key-shape"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg></div>
+        <div class="key-row-text"><span class="key-sev-name">Rare complaint</span><span class="key-sev-range">1–10 removals</span></div>
+      </div>
+      <div class="key-row" data-sev="2">
+        <div class="key-shape"><svg width="16" height="16" viewBox="0 0 20 20"><polygon points="10,2 18,17 2,17" fill="var(--sev-3)" stroke="white" stroke-width="1.5"/></svg></div>
+        <div class="key-row-text"><span class="key-sev-name">Pattern emerging</span><span class="key-sev-range">11–50 removals</span></div>
+      </div>
+      <div class="key-row" data-sev="3">
+        <div class="key-shape"><svg width="16" height="16" viewBox="0 0 20 20"><polygon points="10,2 18,10 10,18 2,10" fill="var(--sev-4)" stroke="white" stroke-width="1.5"/></svg></div>
+        <div class="key-row-text"><span class="key-sev-name">Significant removals</span><span class="key-sev-range">51–200 removals</span></div>
+      </div>
+      <div class="key-row" data-sev="4">
+        <div class="key-shape"><svg width="16" height="16" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" fill="var(--sev-5)" stroke="white" stroke-width="1.5"/></svg></div>
+        <div class="key-row-text"><span class="key-sev-name">Extreme concentration</span><span class="key-sev-range">200+ removals</span></div>
+      </div>
+      <div class="key-disclaimer" id="key-disclaimer">Removals disclosed by Google.<br>Does not imply wrongdoing.</div>
+      <div class="cluster-toggle">
+        <label>
+          <input type="checkbox" id="cluster-toggle">
+          <span id="cluster-label">Group nearby pins</span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const DATA_URL = "https://berlintracker.github.io/berlin.defamation.tracker/results.json";
+  const META_URL = "https://berlintracker.github.io/berlin.defamation.tracker/meta.json";
+
+  // ── Translations ──────────────────────────────────────────
+  const STRINGS = {
+    en: {
+      title:       'Berlin Defamation<br>Review Tracker',
+      description: 'Tracking Google Maps reviews removed from Berlin venues following defamation complaints.',
+      aboutLink:   'About this project →',
+      howWeGot:    'How we got this data →',
+      modeRemoved: 'Most Removed',
+      modeRate:    'Removal Rate',
+      modeImpact:  'Rating Gap',
+      listHeader:  (n, sev) => 'Top 10 of ' + n + ' venues in current view' + (sev ? ' · severity ' + sev + ' only' : ''),
+      kicker:      'Investigation update · 2026',
+      hsLabel:     'Google reviews removed across Berlin venues following defamation complaints.',
+      hsSub:       (pct, hits, total) => '<span class="secondary-stat"><strong>' + pct + '%</strong>of venues checked (' + hits + ' of ' + total.toLocaleString('en') + ') have had at least one review removed.</span>',
+      hsDisclose:    'Disclosed by Google. Does not imply wrongdoing.',
+      persistKicker: 'In this area',
+      keyTitle:    'What the patterns suggest',
+      sevLabels:   ['Rare', 'Repeated', 'Significant', 'Extreme'],
+      sevRanges:   ['1–10 removals', '11–50 removals', '51–200 removals', '200+ removals'],
+      keyDisclaim: 'Removals disclosed by Google.<br>Does not imply wrongdoing.',
+      clusterLbl:  'Group nearby pins',
+      aboutBtn:    'About',
+      areaLabel:   'removals recorded',
+      areaZero:    'no removals recorded',
+      // popup
+      reviewsRm:   'Reviews removed',
+      rmRate:      'Removal rate',
+      curRating:   'Current rating',
+      floorNote:   'Google stops disclosing above 250 — true figure may be higher.',
+      adjNote:     r => 'Could be as low as ' + r + '★ if removed reviews are counted',
+      viewSrc:     'See on Google Maps ↗',
+      // list
+      rateUnk:     'rate unknown',
+      atLeast:     'at least ',
+      upTo:        'up to ',
+      oneInN:      n => '1 in ' + n + ' reviews',
+      mostReviews: 'the majority of reviews',
+      removed:     'removed',
+      rate:        'rate',
+      removedOf:   n => 'removed of ' + n,
+      upToDiff:    d => 'Up to ' + d + '★ difference',
+      ifRemoved:   'if removed reviews averaged 1★',
+      footnoteImpact: 'Rating Gap assumes removed reviews averaged 1★. Worst-case estimate only.',
+      footnote:    '① Venues with 50+ reviews only. A single removal skews rates for low-volume places. Rating gap assumes removed reviews averaged 1★ — worst case estimate.',
+      peerRank:    (rank, total, cat, area) => {
+        const ords = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+        const ord  = ords[rank - 1] || rank + 'th';
+        return ord + ' of ' + total + ' ' + categoryLabel(cat, 'en') + (area ? ' in ' + area : '') + ' by removals';
+      },
+    },
+    de: {
+      title:       'Berlin Trust&#8209;Index',
+      description: 'Verfolgt Google Maps-Bewertungen, die nach Diffamierungsbeschwerden von Berliner Betrieben entfernt wurden.',
+      aboutLink:   'Über dieses Projekt →',
+      howWeGot:    'Wie wir die Daten erhoben haben →',
+      modeRemoved: 'Meiste entfernt',
+      modeRate:    'Entfernungsrate',
+      modeImpact:  'Bewertungslücke',
+      listHeader:  (n, sev) => 'Top 10 von ' + n + ' Betrieben in der Ansicht' + (sev ? ' · nur Schweregrad ' + sev : ''),
+      kicker:      'Untersuchungs-Update · 2026',
+      hsLabel:     'Google-Bewertungen wurden nach Diffamierungsbeschwerden von Berliner Betrieben entfernt.',
+      hsSub:       (pct, hits, total) => '<span class="secondary-stat"><strong>' + pct + ' %</strong>der geprüften Betriebe (' + hits + ' von ' + total.toLocaleString('de') + ') hatten mindestens eine entfernte Bewertung.</span>',
+      hsDisclose:    'Von Google offengelegt. Kein Hinweis auf Fehlverhalten.',
+      persistKicker: 'In diesem Bereich',
+      keyTitle:    'Was die Muster zeigen',
+      sevLabels:   ['Selten', 'Wiederholt', 'Erheblich', 'Extrem'],
+      sevRanges:   ['1–10 Entfernungen', '11–50 Entfernungen', '51–200 Entfernungen', '200+ Entfernungen'],
+      keyDisclaim: 'Von Google offengelegt.<br>Kein Hinweis auf Fehlverhalten.',
+      clusterLbl:  'Nahe Betriebe gruppieren',
+      aboutBtn:    'Info',
+      areaLabel:   'Entfernungen erfasst',
+      areaZero:    'Keine Entfernungen erfasst',
+      // popup
+      reviewsRm:   'Entfernte Bewertungen',
+      rmRate:      'Entfernungsquote',
+      curRating:   'Aktuelle Bewertung',
+      floorNote:   'Google zeigt maximal 250 an – der tatsächliche Wert kann höher sein.',
+      adjNote:     r => 'Könnte nur ' + r + '★ sein, wenn entfernte Bewertungen mitzählen',
+      viewSrc:     'Auf Google Maps ansehen ↗',
+      // list
+      rateUnk:     'Rate unbekannt',
+      atLeast:     'mindestens ',
+      upTo:        'bis zu ',
+      oneInN:      n => '1 von ' + n + ' Bewertungen',
+      mostReviews: 'die meisten Bewertungen',
+      removed:     'entfernt',
+      rate:        'Rate',
+      removedOf:   n => 'von ' + n + ' entfernt',
+      upToDiff:    d => 'Bis zu ' + d + '★ Unterschied',
+      ifRemoved:   'wenn entfernte Bewertungen im Schnitt 1★ hatten',
+      footnoteImpact: 'Bewertungslücke geht davon aus, dass entfernte Bewertungen im Schnitt 1★ hatten. Nur Schätzung.',
+      footnote:    '① Nur Betriebe mit 50+ Bewertungen. Einzelne Entfernungen verzerren die Rate. Bewertungslücke geht davon aus, dass entfernte Bewertungen im Schnitt 1★ hatten — Worst-Case-Schätzung.',
+      peerRank:    (rank, total, cat, area) => {
+        return rank + '. von ' + total + ' ' + categoryLabel(cat, 'de') + (area ? ' in ' + area : '') + ' nach Entfernungen';
+      },
+    },
+  };
+
+  // ?lang=de or ?lang=en overrides browser language — useful for testing
+  const _langParam = new URLSearchParams(window.location.search).get('lang');
+  let currentLang = _langParam === 'de' || _langParam === 'en' ? _langParam
+    : (navigator.language || navigator.userLanguage || 'en').toLowerCase().startsWith('de') ? 'de' : 'en';
+  let _storedMeta = null;
+
+  function applyLang(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang; // enables html[lang="de"] CSS rules
+    const S = STRINGS[lang];
+
+    // Switcher UI — toggle bold on active option
+    document.querySelectorAll('.lang-opt').forEach(opt =>
+      opt.classList.toggle('active', opt.dataset.lang === lang));
+
+    // Search placeholder
+    const si = document.getElementById('venue-search-input');
+    if (si) si.placeholder = lang === 'de' ? 'Betrieb suchen …' : 'Search venues…';
+
+    // Sidebar — title is bilingual/static; only update mini handle
+    const miniTitle = document.getElementById('handle-title-mini');
+    if (miniTitle) miniTitle.textContent = lang === 'de' ? 'Berlin Trust‑Index' : 'Berlin Trust Index';
+    updateHandleMini();
+    document.getElementById('sidebar-desc').textContent = S.description;
+    const aboutLink = document.getElementById('about-link');
+    if (aboutLink) aboutLink.textContent = S.aboutLink;
+
+    // Tabs
+    document.querySelector('.mode-btn[data-mode="removed"]').textContent = S.modeRemoved;
+    document.querySelector('.mode-btn[data-mode="rate"]').textContent    = S.modeRate;
+    document.querySelector('.mode-btn[data-mode="impact"]').textContent  = S.modeImpact;
+
+    // Map key
+    document.getElementById('key-title').textContent    = S.keyTitle;
+    document.getElementById('key-disclaimer').innerHTML = S.keyDisclaim;
+    document.getElementById('cluster-label').textContent = S.clusterLbl;
+    const aboutLbl = document.getElementById('about-btn-label');
+    if (aboutLbl) aboutLbl.textContent = S.aboutBtn;
+    // Persistent zone — kicker, label, and disclosure
+    const persistKicker = document.getElementById('hs-persist-kicker');
+    if (persistKicker) persistKicker.textContent = S.persistKicker;
+    const persistLbl = document.getElementById('hs-persist-label');
+    if (persistLbl && _lastPersistZero) persistLbl.textContent = S.areaZero;
+    else if (persistLbl) persistLbl.textContent = S.areaLabel;
+    const disclose = document.getElementById('hs-disclose');
+    if (disclose) disclose.textContent = S.hsDisclose;
+    // Re-label citywide totals in the new language
+    const ctMin = document.getElementById('hs-citywide-min');
+    const ctMax = document.getElementById('hs-citywide-max');
+    if (ctMin && ctMin.textContent && window._totalRemovedMin != null) {
+      const loc = lang === 'de' ? 'de' : 'en';
+      ctMin.textContent = window._totalRemovedMin.toLocaleString(loc) + '+ ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
+      if (ctMax && window._totalRemovedMax != null)
+        ctMax.textContent = (lang === 'de' ? 'möglicherweise bis zu ' : 'could be as many as ') + window._totalRemovedMax.toLocaleString(loc) + '+';
+    }
+    document.querySelectorAll('.key-sev-name').forEach((el, i) => { el.textContent = S.sevLabels[i]; });
+    document.querySelectorAll('.key-sev-range').forEach((el, i) => { el.textContent = S.sevRanges[i]; });
+
+    // Re-render dynamic content
+    if (_storedMeta) renderHsSub(_storedMeta);
+    if (allData.length) { renderList(); scheduleStatUpdate(); }
+  }
+
+  function renderHsSub(meta) {
+    _storedMeta = meta;
+    // Data freshness
+    const freshEl = document.getElementById('hs-freshness');
+    if (freshEl && meta) {
+      const d = new Date();
+      const mo = d.toLocaleString('en', { month: 'long' });
+      freshEl.textContent = `Data current as of ${mo} ${d.getFullYear()}.`;
+    }
+    // Update about-modal numbers paragraph with live meta
+    const abt = document.getElementById('about-numbers-text');
+    if (abt && meta) {
+      const checked = (meta.total_places_checked || 0).toLocaleString('en');
+      const hits    = (meta.total_hits || 0).toLocaleString('en');
+      const removed = (meta.total_removed_min || 0).toLocaleString('en');
+      abt.innerHTML = `${checked} Berlin venues checked so far. ${hits} with recorded removals. `
+        + `At least ${removed} reviews removed — likely more, since Google stops disclosing above 250 per venue.`;
+    }
+    updateHandleMini();
+  }
+
+  // Translate German google_category to English for peer rank display.
+  // DE mode uses the raw category as-is.
+  // German adjectives decline: "Indisches", "Italienisches", "Türkisches" etc.
+  // Match on the stem (strip trailing 'es','e','er','em','en') — use includes() on stem.
+  const CUISINE_MAP = [
+    ['italian',   'Italian'],
+    ['indisch',   'Indian'],    // Indisches, Indische, Indischer
+    ['chinesisch','Chinese'],
+    ['vietnames', 'Vietnamese'],
+    ['thai',      'Thai'],
+    ['japanisch', 'Japanese'],
+    ['türkisch',  'Turkish'],
+    ['griechisch','Greek'],
+    ['spanisch',  'Spanish'],
+    ['französisch','French'],
+    ['arabisch',  'Arabic'],
+    ['libanesisch','Lebanese'],
+    ['persisch',  'Persian'],
+    ['mexikanisch','Mexican'],
+    ['amerikanisch','American'],
+    ['asiatisch', 'Asian'],
+    ['deutsch',   'German'],
+    ['österreich','Austrian'],
+    ['polnisch',  'Polish'],
+    ['russisch',  'Russian'],
+    ['koreanisch','Korean'],
+    ['afghanisch','Afghan'],
+    ['äthiopisch','Ethiopian'],
+    ['israelisch','Israeli'],
+    ['georgisch', 'Georgian'],
+    ['peruanisch','Peruvian'],
+    ['vegetarisch','vegetarian'],
+    ['vegan',     'vegan'],
+    ['mediterran','Mediterranean'],
+    ['frühstück','breakfast'],
+  ];
+
+  // Categories that should pass through in English with their proper name
+  const PASSTHROUGH_EN = ['gay bar', 'gay club', 'night club', 'nightclub'];
+
+  function categoryLabel(cat, lang) {
+    if (!cat) return lang === 'de' ? 'Betriebe' : 'Venues';
+    if (lang === 'de') return cat;
+    const l = cat.toLowerCase();
+
+    // Proper-noun categories — keep as-is
+    for (const pt of PASSTHROUGH_EN) {
+      if (l.includes(pt)) return cat;
+    }
+
+    // Cuisine-specific restaurants (e.g. "Italienisches Restaurant" → "Italian restaurants")
+    for (const [de, en] of CUISINE_MAP) {
+      if (l.includes(de)) {
+        if (l.includes('restaurant')) return en + ' Restaurants';
+        if (l.includes('imbiss') || l.includes('küche')) return en + ' Restaurants';
+        return en + ' Venues';
+      }
+    }
+
+    // Venue type fallbacks
+    if (l.includes('restaurant'))              return 'Restaurants';
+    if (l.includes('bar') || l.includes('lounge') || l.includes('kneipe')) return 'Bars';
+    if (l.includes('café') || l.includes('cafe') || l.includes('kaffee')) return 'Cafés';
+    if (l.includes('bäckerei') || l.includes('backerei'))  return 'Bakeries';
+    if (l.includes('konditorei'))              return 'Patisseries';
+    if (l.includes('eisdiele'))                return 'Ice Cream Shops';
+    if (l.includes('imbiss') || l.includes('schnellimbiss')) return 'Fast Food Venues';
+    if (l.includes('pizza'))                   return 'Pizza Places';
+    if (l.includes('sushi'))                   return 'Sushi Restaurants';
+    if (l.includes('biergarten'))              return 'Beer Gardens';
+    if (l.includes('brauerei'))                return 'Breweries';
+    if (l.includes('hotel'))                   return 'Hotels';
+    return 'Venues';
+  }
+
+  // ── Tiers ──────────────────────────────────────────────────
+  const TIERS = [
+    { min: 1,   max: 10,       sev: 1, color: "#bdbbb4", scale: 0.7  },
+    { min: 11,  max: 50,       sev: 2, color: "#c49a3a", scale: 0.9  },
+    { min: 51,  max: 200,      sev: 3, color: "#b24a3a", scale: 1.0  },
+    { min: 201, max: Infinity, sev: 4, color: "#7c1f1f", scale: 1.0  },
+  ];
+
+  function getTier(removed) {
+    return TIERS.find(t => removed >= t.min && removed <= t.max) || TIERS[0];
+  }
+
+  // Show Google's disclosed range (e.g. "101–250"), not just the upper bound.
+  // Floor cases show "251+" (or whatever removed_min was stored as).
+  function removedDisplay(p) {
+    if (p._isFloor) return (p.removed_min || 251) + '+';
+    if (p.removed_min && p.removed_max && p.removed_min !== p.removed_max) {
+      return p.removed_min + '–' + p.removed_max;
+    }
+    return String(p._removed);
+  }
+
+  function makeMarkerEl(tier) {
+    const s = tier.scale, c = tier.color;
+    const opacities = [0.55, 0.78, 0.92, 1.0];
+    const opacity   = opacities[tier.sev - 1] || 1.0;
+    const stroke    = 'stroke="white" stroke-width="1.5"';
+    let shape;
+    if      (tier.sev === 1) shape = '<circle cx="10" cy="10" r="7" fill="' + c + '" ' + stroke + '/>';
+    else if (tier.sev === 2) shape = '<polygon points="10,2 18,17 2,17" fill="' + c + '" ' + stroke + '/>';
+    else if (tier.sev === 3) shape = '<polygon points="10,2 18,10 10,18 2,10" fill="' + c + '" ' + stroke + '/>';
+    else                     shape = '<rect x="2" y="2" width="16" height="16" fill="' + c + '" ' + stroke + '/>';
+
+    const size = Math.round(20 * s);
+    const el   = document.createElement('div');
+    el.style.cssText = 'width:' + size + 'px;height:' + size + 'px;cursor:pointer;opacity:' + opacity + ';';
+    el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="' + size + '" height="' + size + '">' + shape + '</svg>';
+    return el;
+  }
+
+  // ── Onboarding state ─────────────────────────────────────────────────────────
+  const _seenIntro  = document.cookie.includes('seen_intro=1');
+  let   _obActive        = !_seenIntro;
+  let   _obTransitioning = false; // true during intro exit — suppresses moveend re-renders
+  let   _obBeat          = 0;
+  let   _obCounterTimer = null;
+
+  let map, allData = [], markerMap = {}, activeInfoWindow = null, activeItem = null;
+  let currentMode = "impact";
+  let clusterer   = null;
+  let activeSev   = null;
+  let activeVenueType = null;
+
+  // Venue type definitions — categories matched against p.category (German strings from Google)
+  const VENUE_TYPES = [
+    { id: 'restaurant', match: c => c.includes('restaurant') || (c.includes('küche') && !c.includes('bar')) },
+    { id: 'bar',        match: c => c.includes('kneipe') || c.includes('pub') || c.includes('lounge')
+                                 || (c.includes('bar') && !c.includes('nachtclub') && !c.includes('diskothek') && !c.includes('saftbar')) },
+    { id: 'cafe',       match: c => c.includes('café') || c.includes('cafe') || c.includes('kaffee')
+                                 || c.includes('bäckerei') || c.includes('konditorei')
+                                 || c.includes('frühstück') || c.includes('brunch')
+                                 || c.includes('saftbar') || c.includes('teestube') },
+    { id: 'museum',     match: c => c.includes('museum') || c.includes('galerie') || c.includes('kunsthalle') || c.includes('ausstellung') },
+    { id: 'club',       match: c => c.includes('nachtclub') || c.includes('diskothek') || c.includes('disko')
+                                 || c.includes('nightclub') || (c.includes('club') && !c.includes('bar')) },
+  ];
+
+  function venueTypeMatch(p) {
+    if (!activeVenueType) return true;
+    if (!p.category) return false;
+    const cat = p.category.toLowerCase();
+    const vt  = VENUE_TYPES.find(v => v.id === activeVenueType);
+    return vt ? vt.match(cat) : true;
+  }
+
+  function filterByVenueType(typeId) {
+    activeVenueType = activeVenueType === typeId ? null : typeId;
+    document.querySelectorAll('.venue-pill').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.type === activeVenueType));
+    // Re-apply marker visibility
+    if (clusterer) {
+      clusterer.clearLayers();
+      Object.values(markerMap).forEach(e => {
+        const show = (activeSev === null || e.sev === activeSev) && venueTypeMatch(e.place);
+        if (show) clusterer.addLayer(e.marker);
+      });
+    } else {
+      Object.values(markerMap).forEach(e => {
+        const show = (activeSev === null || e.sev === activeSev) && venueTypeMatch(e.place);
+        if (show) e.marker.addTo(map); else e.marker.remove();
+      });
+    }
+    renderList();
+    scheduleStatUpdate();
+  }
+
+  function filterBySev(sev) {
+    activeSev = activeSev === sev ? null : sev;
+    Object.values(markerMap).forEach(e => {
+      const show = (activeSev === null || e.sev === activeSev) && venueTypeMatch(e.place);
+      if (show) e.marker.addTo(map); else e.marker.remove();
+    });
+    document.querySelectorAll('.key-row[data-sev]').forEach(row =>
+      row.classList.toggle('active', parseInt(row.dataset.sev) === activeSev));
+    renderList();
+    scheduleStatUpdate();
+  }
+
+  function setCluster(enable) {
+    if (enable) {
+      Object.values(markerMap).forEach(e => e.marker.remove());
+      clusterer = L.markerClusterGroup({ chunkedLoading: true });
+      Object.values(markerMap).forEach(e => {
+        if ((activeSev === null || e.sev === activeSev) && venueTypeMatch(e.place))
+          clusterer.addLayer(e.marker);
+      });
+      map.addLayer(clusterer);
+    } else {
+      if (clusterer) { map.removeLayer(clusterer); clusterer = null; }
+      Object.values(markerMap).forEach(e => {
+        const show = (activeSev === null || e.sev === activeSev) && venueTypeMatch(e.place);
+        if (show) e.marker.addTo(map); else e.marker.remove();
+      });
+    }
+  }
+
+  const HOME_CENTER = [52.505, 13.390];
+  const HOME_ZOOM   = 13;
+
+  function resetHome() {
+    if (map) map.flyTo(HOME_CENTER, HOME_ZOOM, { animate: true, duration: 0.6 });
+    if (activeInfoWindow) { activeInfoWindow.remove(); activeInfoWindow = null; }
+    // Reset factoid session state so priority stories fire again on first eligible pan
+    _panCount          = 0;
+    _lastStatType      = null;
+    _lastEditorialIdx  = -1;
+    _sessionTypeCounts = {};
+    _seenByDistrict    = {};
+    _lastCitywide      = true;
+    // Restore opening factoid (citywide overview)
+    _openingDone = false;
+    if (allData.length) {
+      const S = STRINGS[currentLang];
+      const total   = allData.length;
+      const checked = (window._storedMetaTotal || total);
+      const pct     = Math.round((total / checked) * 100);
+      const text    = currentLang === 'de'
+        ? `<span class="fact-title" style="font-size:24px;line-height:1.1;">${pct} %</span>`
+          + `<span class="fact-body">der bisher geprüften Betriebe (<span class="fact-strong">${checked.toLocaleString('de')}</span>) hatten mindestens eine Bewertung entfernt.</span>`
+        : `<span class="fact-title" style="font-size:24px;line-height:1.1;">${pct}%</span>`
+          + `<span class="fact-body">of <span class="fact-strong">${checked.toLocaleString('en')}</span> venues checked so far have had at least one review removed.</span>`;
+      const el = document.getElementById('hs-fact-text');
+      if (el) { el.innerHTML = text; }
+    }
+    // Clear active filter pill
+    document.querySelectorAll('.venue-pill.active').forEach(p => p.classList.remove('active'));
+    activeVenueType = null;
+    const ftl = document.getElementById('filter-toggle-label');
+    if (ftl) ftl.textContent = 'Filter';
+    renderList();
+  }
+
+  function initMap() {
+    map = L.map('map', { zoomControl: false }).setView(HOME_CENTER, HOME_ZOOM);
+
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=7c5af043-7b49-41ab-8ecf-72ace61ef75f', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Warm wash overlay — above tiles, below markers
+    const wash = document.createElement('div');
+    wash.className = 'map-wash';
+    document.getElementById('map').appendChild(wash);
+
+    loadData();
+
+    map.on('moveend', () => {
+      clearTimeout(window._boundsTimer);
+      window._boundsTimer = setTimeout(renderList, 300);
+      scheduleStatUpdate();
+    });
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentMode = btn.dataset.mode;
+        renderList();
+      });
+    });
+
+    document.getElementById("cluster-toggle").addEventListener("change", e => {
+      const enabling = e.target.checked;
+      setCluster(enabling);
+      if (!enabling) map.setZoom(Math.max(map.getZoom(), 13));
+    });
+
+    document.querySelectorAll(".key-row[data-sev]").forEach(row =>
+      row.addEventListener("click", () => filterBySev(parseInt(row.dataset.sev))));
+
+    // Language switcher — direct click on EN / DE spans
+    document.querySelectorAll('.lang-opt').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        applyLang(opt.dataset.lang);
+      });
+    });
+
+    // Venue type pill filters
+    document.querySelectorAll('.venue-pill[data-type]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterByVenueType(btn.dataset.type);
+        // Close dropdown if open
+        document.getElementById('venue-filters')?.classList.remove('filter-open');
+        const toggle = document.getElementById('filter-toggle');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'false');
+          // Update toggle label to active filter name
+          const label = document.getElementById('filter-toggle-label');
+          if (label) label.textContent = activeVenueType ? btn.textContent.trim() : 'Filter';
+        }
+      });
+    });
+
+    // Filter toggle (collapsed mode)
+    const filterToggle = document.getElementById('filter-toggle');
+    if (filterToggle) {
+      filterToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const vf = document.getElementById('venue-filters');
+        const open = vf.classList.toggle('filter-open');
+        filterToggle.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', () => {
+        document.getElementById('venue-filters')?.classList.remove('filter-open');
+        filterToggle.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    // About modal
+    const aboutOverlay = document.getElementById('about-overlay');
+    document.getElementById('about-btn').addEventListener('click', () => {
+      aboutOverlay.classList.add('open');
+    });
+    document.getElementById('about-close').addEventListener('click', () => {
+      aboutOverlay.classList.remove('open');
+    });
+
+    // Animate about modal accordions
+    document.querySelectorAll('#about-modal details').forEach(details => {
+      const summary = details.querySelector('summary');
+      const body    = details.querySelector('.about-section-body');
+      if (!summary || !body) return;
+
+      summary.addEventListener('click', e => {
+        e.preventDefault();
+        if (details.open) {
+          // Closing: lock height then animate to 0
+          body.style.height = body.scrollHeight + 'px';
+          requestAnimationFrame(() => {
+            body.style.height = '0px';
+          });
+          body.addEventListener('transitionend', () => {
+            details.removeAttribute('open');
+            body.style.height = '';
+          }, { once: true });
+        } else {
+          // Opening: set open, measure, animate from 0
+          details.setAttribute('open', '');
+          const h = body.scrollHeight;
+          body.style.height = '0px';
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              body.style.height = h + 'px';
+            });
+          });
+          body.addEventListener('transitionend', () => {
+            body.style.height = '';
+          }, { once: true });
+        }
+      });
+    });
+    aboutOverlay.addEventListener('click', e => {
+      if (e.target === aboutOverlay) aboutOverlay.classList.remove('open');
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (_obActive) _obFinish();
+        else aboutOverlay.classList.remove('open');
+      }
+    });
+
+    if (_obActive) _obInit();
+  }
+
+  async function loadData() {
+    let res, metaRes;
+    try {
+      [res, metaRes] = await Promise.all([fetch(DATA_URL), fetch(META_URL)]);
+    } catch(e) {
+      console.error('Failed to fetch data:', e);
+      document.getElementById('list').innerHTML =
+        "<div style='padding:24px;font-size:13px;color:#8c877f;'>Could not load venue data. Please refresh.</div>";
+      return;
+    }
+    allData = await res.json();
+    const meta = await metaRes.json();
+
+    allData.forEach(p => {
+      // _isFloor: Google caps disclosure at 250 — removed_max is null for "Über 250" cases.
+      // We never know the true count; _removed is the best available number (lower bound).
+      p._isFloor = p.removed_max === null;
+      p._removed = p.removed_max != null ? p.removed_max : (p.removed_min || 0);
+      // Floor cases (250+) must always be tier 4 (extreme) — getTier(250) would wrongly return tier 3
+      p._tier       = p._isFloor ? TIERS[3] : getTier(p._removed);
+      // Sort bump: floor cases (250+) must rank above 201-250 despite equal _removed value
+      p._removedSort = p._isFloor ? p._removed + 0.5 : p._removed;
+
+      let rate = null;
+      if (p.total_reviews && p._removed) {
+        rate = Math.round((p._removed / p.total_reviews) * 1000) / 10;
+      } else if (p.removal_rate != null) {
+        rate = Math.round(p.removal_rate * 1000) / 10;
+      }
+      p._rate = rate;
+
+      // Rating gap: total_reviews is the count of VISIBLE (non-removed) reviews.
+      // Worst-case adjusted rating assumes every removed review was 1★.
+      // adj = (star_rating × visible_reviews + removed×1) / (visible + removed)
+      // _ratingDelta = star_rating − adj  — always positive, shown as "up to X★ difference"
+      if (p.star_rating && p.total_reviews && p._removed) {
+        const adj    = (p.star_rating * p.total_reviews + p._removed) / (p.total_reviews + p._removed);
+        p._ratingDelta = Math.round((p.star_rating - adj) * 100) / 100;
+      } else {
+        p._ratingDelta = null;
+      }
+    });
+
+    // Peer rank — group by area + category, rank by removal count
+    const peerGroups = {};
+    allData.forEach(p => {
+      const key = ((p.area || '') + '|' + (p.category || '')).toLowerCase();
+      if (!peerGroups[key]) peerGroups[key] = [];
+      peerGroups[key].push(p);
+    });
+    Object.values(peerGroups).forEach(group => {
+      group.sort((a, b) => b._removed - a._removed);
+      group.forEach((p, i) => {
+        if (group.length >= 3) p._peerRank = { rank: i + 1, total: group.length };
+      });
+    });
+
+    // Headline stat — set city baseline for reactive card
+    const totalRemoved = allData.reduce((s, p) => s + (p.removed_min || 0), 0);
+    _cityTotalRemoved  = totalRemoved;
+    _cityHitRate       = meta.total_places_checked > 0 ? allData.length / meta.total_places_checked : 0;
+    window._areaStats  = meta.area_stats || {};
+
+    // MSS citywide stats — precompute once for stat card atoms
+    const mssGroups = {};
+    allData.forEach(p => {
+      const si = p.mss_si_n;
+      if (!si) return;
+      if (!mssGroups[si]) mssGroups[si] = { removals: 0, venues: 0 };
+      mssGroups[si].removals += (p.removed_min || 0);
+      mssGroups[si].venues++;
+    });
+    const mssTotalRemovals = Object.values(mssGroups).reduce((s, g) => s + g.removals, 0);
+    Object.keys(mssGroups).forEach(si => {
+      mssGroups[si].pct = mssTotalRemovals > 0
+        ? Math.round((mssGroups[si].removals / mssTotalRemovals) * 100) : 0;
+    });
+    _mssCityStats = mssGroups;
+
+    // Median removal rate across all hits — used by rating_immunity story
+    const rates = allData.map(p => p._rate).filter(r => r != null).sort((a, b) => a - b);
+    _cityMedianRemovalRate = rates.length ? rates[Math.floor(rates.length / 2)] : 0;
+
+    renderHsSub(meta);
+
+    // Populate persistent zone immediately (city total until first pan)
+    document.getElementById('hs-persist-number').textContent = totalRemoved.toLocaleString() + '+';
+    document.getElementById('hs-persist-label').textContent  = STRINGS[currentLang].areaLabel;
+
+    // Citywide removal totals: min = sum of removed_min (always shown as lower bound).
+    // Max = sum of removed_max for capped venues; floor cases (250+) have removed_max = null
+    // so we use removed_min as a conservative stand-in — the real max is unknowably higher.
+    const totalRemovedMax = allData.reduce((s, p) => s + (p.removed_max != null ? p.removed_max : (p.removed_min || 0)), 0);
+    window._totalRemovedMin = totalRemoved;
+    window._totalRemovedMax = totalRemovedMax;
+    const locale = currentLang === 'de' ? 'de' : 'en';
+    const ctMin = document.getElementById('hs-citywide-min');
+    const ctMax = document.getElementById('hs-citywide-max');
+    const ctWrap = document.getElementById('hs-citywide-total');
+    if (ctMin && ctMax && ctWrap) {
+      ctMin.textContent = totalRemoved.toLocaleString(locale) + '+ ' + (currentLang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
+      ctMax.textContent = (currentLang === 'de' ? 'möglicherweise bis zu ' : 'could be as many as ') + totalRemovedMax.toLocaleString(locale) + '+';
+      ctWrap.style.display = 'block';
+    }
+
+    // Set opening factoid ONCE — citywide overview (never repeats as a condition)
+    const _openTotal   = meta.total_places_checked || allData.length;
+    window._storedMetaTotal = _openTotal; // saved for resetHome()
+    const _openHits    = allData.length;
+    const _openPct     = Math.round((_openHits / _openTotal) * 100);
+    const _openText    = currentLang === 'de'
+      ? `<span class="fact-title" style="font-size:24px;line-height:1.1;">${_openPct} %</span>`
+        + `<span class="fact-body">der bisher geprüften Betriebe (<span class="fact-strong">${_openTotal.toLocaleString('de')}</span>) hatten mindestens eine Bewertung entfernt.</span>`
+      : `<span class="fact-title" style="font-size:24px;line-height:1.1;">${_openPct}%</span>`
+        + `<span class="fact-body">of <span class="fact-strong">${_openTotal.toLocaleString('en')}</span> venues checked so far have had at least one review removed.</span>`;
+    const _factEl = document.getElementById('hs-fact-text');
+    if (_factEl) _factEl.innerHTML = _openText;
+    // Persist for zoom-out restore: when user zooms back to citywide after panning into a district,
+    // updateStatCard() detects the _lastCitywide transition and replays this text via animateStatCard().
+    window._citywideFactoidHTML = _openText;
+    // _openingDone = false means the FIRST moveend after data loads will be swallowed (not replace this text).
+    // The tile-load triggers a moveend; without this guard it would immediately overwrite the opening factoid.
+    _openingDone = false;
+
+    // Place markers — popups built fresh on click for lang switching
+    allData.forEach(p => {
+      if (!p.lat || !p.lng) return;
+
+      const el = makeMarkerEl(p._tier);
+      const size = parseInt(el.style.width) || 20;
+      const icon = L.divIcon({
+        html: el.outerHTML,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+      const marker = L.marker([p.lat, p.lng], { icon, zIndexOffset: p._tier.sev * 10 }).addTo(map);
+      if (_obActive) marker.setOpacity(0);
+
+      marker.on('click', () => {
+        try {
+          if (activeInfoWindow) activeInfoWindow.remove();
+          activeInfoWindow = L.popup({ className: 'bti-popup', maxWidth: 320, closeButton: true })
+            .setLatLng([p.lat, p.lng])
+            .setContent(buildPopupHTML(p))
+            .openOn(map);
+        } catch(e) {
+          console.error('Popup failed for', p.name, e);
+        }
+      });
+
+      // markerMap: keyed by place_id — used by search selectResult() to fire a popup click
+      // after flyTo(), and by filter functions to show/hide individual markers.
+      markerMap[p.id] = { marker, sev: p._tier.sev, place: p };
+    });
+
+    renderList();
+  }
+
+  function inViewport(p) {
+    if (!map || !p.lat || !p.lng) return false;
+    const bounds = map.getBounds();
+    if (!bounds) return true;
+    return bounds.contains([p.lat, p.lng]);
+  }
+
+  function sortedData() {
+    const d = allData.filter(p => p.lat && p.lng && inViewport(p)
+      && (activeSev === null || p._tier.sev === activeSev)
+      && venueTypeMatch(p));
+    if (currentMode === "removed")
+      return [...d].sort((a, b) => (b._removedSort - a._removedSort) || ((b._rate || 0) - (a._rate || 0))).slice(0, 10);
+    if (currentMode === "rate")
+      return [...d].filter(p => p._rate != null && p.total_reviews >= 50)
+        .sort((a, b) => b._rate - a._rate).slice(0, 10);
+    if (currentMode === "impact")
+      return [...d].filter(p => p._ratingDelta != null && p._ratingDelta > 0)
+        .sort((a, b) => b._ratingDelta - a._ratingDelta).slice(0, 10);
+    return d.slice(0, 10);
+  }
+
+  function renderList() {
+    const S    = STRINGS[currentLang];
+    const items = sortedData();
+    const list  = document.getElementById("list");
+    list.innerHTML = "";
+
+    const inView = allData.filter(p => p.lat && p.lng && inViewport(p)
+      && (activeSev === null || p._tier.sev === activeSev)
+      && venueTypeMatch(p)).length;
+    document.getElementById("list-header").textContent = S.listHeader(inView, activeSev);
+
+    items.forEach((p, i) => {
+      const div = document.createElement("div");
+      div.className = "list-item";
+      const rmDisp = removedDisplay(p);
+      let mainStat = "", subStat = "", countNum = "", countLabel = "";
+
+      if (currentMode === "removed") {
+        countNum   = rmDisp;
+        countLabel = S.removed;
+        mainStat   = p._rate != null
+          ? (p._isFloor ? "≥" : "~") + p._rate + "% " + S.rmRate.toLowerCase()
+          : S.rateUnk;
+        subStat    = p._rate != null && p._rate < 100
+          ? ratePhrase(p._rate, p._isFloor, S)
+          : "";
+      } else if (currentMode === "rate") {
+        countNum   = (p._isFloor ? "≥" : "~") + p._rate + "%";
+        countLabel = S.rate;
+        mainStat   = p._rate < 100
+          ? ratePhrase(p._rate, p._isFloor, S)
+          : rmDisp + " " + S.removed;
+        subStat    = rmDisp + " " + S.removedOf((p.total_reviews || "?").toLocaleString());
+      } else if (currentMode === "impact") {
+        const adj  = Math.round((p.star_rating - p._ratingDelta) * 10) / 10;
+        countNum   = p.star_rating + "★";
+        countLabel = "→ " + adj + "★";
+        mainStat   = S.upToDiff(p._ratingDelta);
+        subStat    = S.ifRemoved;
+      }
+
+      div.innerHTML =
+        "<div class='li-rank'>" + String(i + 1).padStart(2, "0") + "</div>"
+        + "<div class='li-main'>"
+          + "<div class='li-name'>" + p.name + "</div>"
+          + "<div class='li-area'>" + p.area + (p.category ? " · " + (currentLang === 'de' ? p.category : categoryLabel(p.category, 'en')) : "") + "</div>"
+          + "<div class='li-stat'>" + mainStat + "</div>"
+          + (subStat ? "<div class='li-sub'>" + subStat + "</div>" : "")
+        + "</div>"
+        + "<div class='li-count'>"
+          + "<span class='li-num'>" + countNum + "</span>"
+          + "<span class='li-label'>" + countLabel + "</span>"
+        + "</div>";
+
+      div.addEventListener("click", () => {
+        if (activeItem) activeItem.classList.remove("active");
+        div.classList.add("active");
+        activeItem = div;
+        const entry = markerMap[p.id];
+        if (entry) {
+          map.flyTo([p.lat, p.lng], 15);
+          if (activeInfoWindow) activeInfoWindow.remove();
+          activeInfoWindow = L.popup({ className: 'bti-popup', maxWidth: 320, closeButton: true })
+            .setLatLng([p.lat, p.lng])
+            .setContent(buildPopupHTML(p))
+            .openOn(map);
+        }
+      });
+
+      list.appendChild(div);
+    });
+
+    if (currentMode === "rate") {
+      const note = document.createElement("div");
+      note.className = "list-footnote";
+      note.textContent = S.footnote;
+      list.appendChild(note);
+    }
+    if (currentMode === "impact") {
+      const note = document.createElement("div");
+      note.className = "list-footnote";
+      note.textContent = S.footnoteImpact;
+      list.appendChild(note);
+    }
+  }
+
+  function buildPopupHTML(p) {
+    // Colour constants must be declared HERE at the top of the function — not lower down.
+    // Previously C_MUTED was declared after the rateStr block that referenced it, causing a
+    // Temporal Dead Zone ReferenceError for venues with removal_rate > 100% (the DARBAR bug).
+    // CSS variables can't be used in inline styles, so these are hardcoded hex equivalents
+    // of the design tokens in :root.
+    const C_INK    = "#22221f";
+    const C_MUTED  = "#8c877f";
+    const C_PAPER  = "#faf9f6";
+    const C_RULE   = "#e8e3da";
+    const C_TINT   = "#f6f4ef";
+
+    const S      = STRINGS[currentLang];
+    const color  = p._tier.color;
+    const rate   = p._rate;
+    const rmDisp = removedDisplay(p);
+
+    const headline = rate != null
+      ? (rate >= 100
+          ? rmDisp + " " + S.removed
+          : ratePhrase(rate, p._isFloor, S) + " " + S.removed)
+      : rmDisp + " " + S.removed;
+
+    const rateStr = rate != null
+      ? (rate > 100
+          ? (p._isFloor ? "≥" : "~") + rate + "%</div><div style='font-size:10px;font-weight:400;color:" + C_MUTED + ";margin-top:2px;line-height:1.3;'>" + (currentLang === 'de' ? "mehr Bewertungen entfernt als verbleiben" : "more reviews removed than remain")
+          : (p._isFloor ? "≥" : "~") + rate + "%")
+      : "—";
+
+    const adjRating = (p._ratingDelta && p._ratingDelta > 0 && p.star_rating)
+      ? Math.round((p.star_rating - p._ratingDelta) * 10) / 10
+      : null;
+
+    const reviewCount = p.total_reviews
+      ? (currentLang === 'de'
+          ? " · " + p.total_reviews.toLocaleString('de') + " Google-Bewertungen"
+          : " · " + p.total_reviews.toLocaleString() + " Google reviews")
+      : "";
+    const stars = p.star_rating
+      ? Array.from({length: 5}, (_, i) =>
+          "<span style='color:" + (i < Math.round(p.star_rating) ? "#c49a3a" : "#ddd") + ";'>★</span>"
+        ).join("") + " <span style='font-size:12px;color:#888;'>(" + p.star_rating + reviewCount + ")</span>"
+      : "";
+
+    const peerLine = p._peerRank
+      ? S.peerRank(p._peerRank.rank, p._peerRank.total, p.category, p.area)
+      : null;
+
+    const catDisplay = currentLang === 'de' ? p.category : categoryLabel(p.category, 'en');
+    const meta = p.area + (catDisplay ? " · " + catDisplay : "");
+
+    return "<div style='font-family:Inter,system-ui,sans-serif;width:300px;line-height:1.45;'>"
+
+      + "<div style='font-family:\"Source Serif 4\",Georgia,serif;font-size:20px;font-weight:500;"
+        + "color:" + C_INK + ";margin-bottom:4px;letter-spacing:-.01em;'>" + p.name + "</div>"
+      + "<div style='font-size:11px;color:" + C_MUTED + ";margin-bottom:12px;text-transform:uppercase;"
+        + "letter-spacing:.07em;'>" + meta + "</div>"
+
+      + "<div style='font-size:14px;font-weight:600;color:" + color + ";margin-bottom:14px;"
+        + "line-height:1.3;'>" + headline + "</div>"
+
+      + "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;"
+          + "padding:12px;background:" + C_PAPER + ";border-radius:8px;border:1px solid " + C_RULE + ";'>"
+          + "<div><div style='font-size:10px;color:" + C_MUTED + ";text-transform:uppercase;"
+            + "letter-spacing:.07em;margin-bottom:4px;'>" + S.reviewsRm + "</div>"
+            + "<div style='font-size:22px;font-weight:600;color:" + C_INK + ";'>" + rmDisp + "</div></div>"
+          + "<div><div style='font-size:10px;color:" + C_MUTED + ";text-transform:uppercase;"
+            + "letter-spacing:.07em;margin-bottom:4px;'>" + S.rmRate + "</div>"
+            + "<div style='font-size:22px;font-weight:600;color:" + C_INK + ";'>" + rateStr + "</div></div>"
+        + "</div>"
+
+      + (stars ? "<div style='margin-bottom:12px;'>"
+          + "<div style='font-size:16px;'>" + stars + "</div>"
+          + (adjRating ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-top:4px;'>"
+            + S.adjNote(adjRating) + "</div>" : "")
+        + "</div>" : "")
+
+      + (p._isFloor ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-bottom:12px;"
+        + "font-style:italic;'>" + S.floorNote + "</div>" : "")
+
+      + (peerLine ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-bottom:12px;"
+          + "padding:8px 10px;background:" + C_TINT + ";border-radius:6px;border:1px solid " + C_RULE + ";'>" + peerLine + "</div>"
+        : "")
+
+      + "<a href='" + p.url + "' target='_blank' "
+        + "style='display:none;text-align:center;padding:10px 12px;background:" + C_INK + ";"
+        + "color:#fff;text-decoration:none;font-size:12px;font-weight:500;"
+        + "border-radius:6px;letter-spacing:0.03em;margin-top:4px;'>"
+        + S.viewSrc + "</a>"
+
+      + "</div>";
+  }
+
+  // ── Mobile drawer (portrait: bottom sheet / landscape: left drawer) ──
+  (function() {
+    const sidebar  = document.getElementById('sidebar');
+    const handle   = document.getElementById('sheet-handle');
+    const sideTab  = document.getElementById('side-tab');
+    const mapWrap  = document.getElementById('map-wrap');
+
+    function toggleDrawer() { sidebar.classList.toggle('sheet-open'); updateSideTab(); }
+    function closeDrawer()  { sidebar.classList.remove('sheet-open'); updateSideTab(); }
+
+    function updateSideTab() {
+      if (!sideTab) return;
+      const open = sidebar.classList.contains('sheet-open');
+      sideTab.style.transform = open
+        ? 'translateY(-50%) translateX(280px)'
+        : 'translateY(-50%)';
+    }
+
+    if (handle)  handle.addEventListener('click', toggleDrawer);
+    if (sideTab) sideTab.addEventListener('click', toggleDrawer);
+
+    // Close when tapping the map
+    if (mapWrap) mapWrap.addEventListener('click', closeDrawer);
+  })();
+
+  function updateHandleMini() {
+    if (window.innerWidth > 680) return;
+    const hits    = allData.length;
+    const checked = (_storedMeta && _storedMeta.total_checked) || hits;
+    const pct     = Math.round((hits / checked) * 100);
+    const el      = document.getElementById('handle-stat-mini');
+    if (el) el.textContent = hits + ' venues · ' + pct + '%';
+  }
+
+  // ── Reactive stat card ────────────────────────────────────────────────────
+  // Recomputes on every map idle event. Picks the first matching story.
+  // Transitions: fade+slide out → update → fade+slide in.
+
+  let _cityTotalRemoved      = 0;   // set after data loads
+  let _cityHitRate           = 0;   // fraction: hits / total checked
+  let _mssCityStats          = {};  // removals/pct by mss_si_n, set after data loads
+  let _cityMedianRemovalRate = 0;   // median _rate across all hits, set after data loads
+  let _statDebounce     = null;
+  let _panCount         = 0;
+  let _lastEditorialIdx = -1;  // avoids immediate editorial repeat
+  let _lastPersistZero  = false; // tracks whether persistent zone is showing 0
+  let _lastStatType     = null; // prevents same story type back-to-back
+  let _sessionTypeCounts = {};  // counts per story type this session — caps repetition
+  let _openingDone      = false; // protects opening factoid from being replaced before first real pan
+  let _lastCitywide     = true; // tracks previous citywide state — detects zoom-out transitions so we
+                                // only replay the citywide factoid ONCE (on transition), not on every pan
+  let _seenByDistrict   = {};   // tracks which story types have fired per district this session
+                                // prevents the same story type showing twice in the same neighbourhood
+
+  // Increment session count for a type; returns how many times it has fired
+  function _countType(type) {
+    _sessionTypeCounts[type] = (_sessionTypeCounts[type] || 0) + 1;
+    _lastStatType = type;
+    return _sessionTypeCounts[type];
+  }
+
+  // "1 in N reviews" phrase — falls back to "the majority of reviews" when N would be 1
+  function ratePhrase(rate, isFloor, S) {
+    const n = Math.round(100 / rate);
+    if (n <= 1) return (isFloor ? S.atLeast : '') + S.mostReviews;
+    return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n);
+  }
+
+  // HTML-escape helper — venues/districts come from scraped data
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const STAT_STORIES = {
+    en: [
+      {
+        type: 'outlier',
+        condition: (v) => {
+          if (v.hits.length < 3) return false;
+          const max = Math.max(...v.hits.map(p => p.removed_min || 0));
+          return v.totalRemoved > 0 && (max / v.totalRemoved) >= 0.45;
+        },
+        text: (v) => {
+          // Pick randomly from top-3 by removed_min so the same venue doesn't always appear
+          const sorted = [...v.hits].sort((a, b) => (b.removed_min || 0) - (a.removed_min || 0)).slice(0, 3);
+          const totalW = sorted.reduce((s, p) => s + (p.removed_min || 1), 0);
+          let r = Math.random() * totalW, top = sorted[sorted.length - 1];
+          for (const p of sorted) { r -= (p.removed_min || 1); if (r <= 0) { top = p; break; } }
+          const pct = top ? Math.round(((top.removed_min || 0) / v.totalRemoved) * 100) : null;
+          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a></span>`
+               + `<span class="fact-body">accounts for <span class="fact-num">${pct || 'most'}%</span> of removals in ${esc(v.district)}.</span>`;
+        },
+      },
+      {
+        type: 'floor',
+        condition: (v) => {
+          const floors = v.hits.filter(p => p._isFloor).length;
+          return floors >= 4 || (floors >= 3 && v.hits.length > 0 && floors / v.hits.length >= 0.33);
+        },
+        text: (v) => {
+          const n = v.hits.filter(p => p._isFloor).length;
+          const label = n === 1 ? 'venue' : 'venues';
+          return `<span class="fact-title"><span class="fact-num">${n}</span> ${label} show 250+ removals.</span>`
+               + `<span class="fact-body">Google stops disclosing above 250 per venue. The actual total for ${esc(v.district)} is unknown.</span>`;
+        },
+      },
+      {
+        type: 'rating', sessionMax: 1,
+        condition: (v) => v.hits.filter(p => p._ratingDelta && p._ratingDelta >= 0.3).length >= 3,
+        text: (v) => {
+          // Pick randomly from top-3 candidates (weighted by delta) so the same
+          // venue doesn't dominate every time this story fires.
+          const candidates = v.hits.filter(p => p._ratingDelta && p._ratingDelta >= 0.3)
+            .sort((a, b) => b._ratingDelta - a._ratingDelta).slice(0, 3);
+          // Weight by delta so bigger deltas still surface more often, just not exclusively
+          const totalW = candidates.reduce((s, p) => s + p._ratingDelta, 0);
+          let r = Math.random() * totalW, pick = candidates[candidates.length - 1];
+          for (const p of candidates) { r -= p._ratingDelta; if (r <= 0) { pick = p; break; } }
+          const adj = Math.round((pick.star_rating - pick._ratingDelta) * 10) / 10;
+          const hash = pick.lat && pick.lng ? `#@${pick.lat.toFixed(5)},${pick.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(pick.id)}" class="fact-venue-link"><span class="fact-strong">${esc(pick.name)}</span></a> — <span class="fact-star">${pick.star_rating}★</span></span>`
+               + `<span class="fact-body">Could be as low as <span class="fact-star">${adj}★</span> if removed reviews are counted.</span>`;
+        },
+      },
+      {
+        type: 'mss',
+        priority: true,
+        condition: (v) => {
+          if (!_mssCityStats[2] || v.hits.length < 5) return false;
+          const si2Hits   = v.hits.filter(p => p.mss_si_n === 2).length;
+          const si2Venues = v.visible.filter(p => p.mss_si_n === 2).length;
+          const otherHits = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 2).length;
+          const otherVen  = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 2).length;
+          if (si2Venues < 3 || otherVen < 3) return false;
+          const si2Rate   = si2Hits / si2Venues;
+          const otherRate = otherHits / otherVen;
+          return otherRate > 0 && (si2Rate / otherRate) >= 1.5;
+        },
+        text: () => {
+          const pct = _mssCityStats[2]?.pct;
+          return pct
+            ? `<span class="fact-title">${pct}% of all removals</span><span class="fact-body">are in medium social-pressure areas — the commercial belt.</span>`
+            : '';
+        },
+      },
+      {
+        type: 'launder',
+        condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
+        text: (v) => {
+          const n = v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length;
+          if (n < 2) return '';
+          const label = n === 1 ? 'venue' : 'venues';
+          return `<span class="fact-title"><span class="fact-num">${n}</span> ${label} rated <span class="fact-star">4.5★+</span></span>`
+               + `<span class="fact-body">in ${esc(v.district)}, each with <span class="fact-num">150+</span> removed reviews.</span>`;
+        },
+      },
+      {
+        type: 'district',
+        condition: (v) => {
+          if (v.citywide || v.zoom < AREA_ZOOM_MIN) return false;
+          if (v.hits.length < 10) return false;
+          const dHits = {}, dVen = {};
+          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
+          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
+          const ranked = Object.entries(dHits)
+            .filter(([a]) => (dVen[a] || 0) >= 5)
+            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
+            .sort((a, b) => b.rate - a.rate);
+          if (ranked.length < 2) return false;
+          return (ranked[0].rate / ranked[ranked.length - 1].rate) >= 1.5;
+        },
+        text: (v) => {
+          const dHits = {}, dVen = {};
+          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
+          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
+          const ranked = Object.entries(dHits)
+            .filter(([a]) => (dVen[a] || 0) >= 5)
+            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
+            .sort((a, b) => b.rate - a.rate);
+          if (ranked.length < 2) return '';
+          const top = ranked[0], bot = ranked[ranked.length - 1];
+          return `<span class="fact-title">${esc(top.area)}</span>`
+               + `<span class="fact-body">has <span class="fact-num">${(top.rate / bot.rate).toFixed(1)}×</span> the removal rate of ${esc(bot.area)}.</span>`;
+        },
+      },
+      {
+        // general_density: merged from 'general' + 'density' — shows city comparison when meaningful
+        type: 'general_density', sessionMax: 1,
+        condition: (v) => v.visible.length >= 5 && v.hits.length >= 2 && v.hitRate >= 0.005,
+        text: (v) => {
+          const ratio = (_cityHitRate > 0) ? v.hitRate / _cityHitRate : 1;
+          if (ratio >= 1.2 && _cityHitRate > 0) {
+            const areaPct = Math.round(v.hitRate * 100);
+            return `<span class="fact-title"><span class="fact-num">${areaPct}%</span> of venues</span>`
+                 + `<span class="fact-body">in ${esc(v.district)} have removals — <span class="fact-strong"><span class="fact-num">${ratio.toFixed(1)}×</span> the city average.</span></span>`;
+          }
+          if (v.hitRate >= 0.04) {
+            const n = Math.round(1 / v.hitRate);
+            return `<span class="fact-title"><span class="fact-num">1 in ${n}</span> venues</span>`
+                 + `<span class="fact-body">in ${esc(v.district)} has recorded removals.</span>`;
+          }
+          const pct = Math.max(1, Math.round(v.hitRate * 100));
+          return `<span class="fact-title"><span class="fact-num">${pct}%</span> of venues</span>`
+               + `<span class="fact-body">in ${esc(v.district)} have recorded removals.</span>`;
+        },
+      },
+      {
+        // review_grave: a venue in view has lost 40%+ of its reviews — not incidental
+        type: 'review_grave', sessionMax: 1,
+        condition: (v) => v.hits.some(p => (p._rate || 0) >= 40 && (p.removed_min || 0) >= 50),
+        text: (v) => {
+          const top = [...v.hits].filter(p => (p._rate || 0) >= 40 && (p.removed_min || 0) >= 50)
+            .sort((a, b) => (b._rate || 0) - (a._rate || 0))[0];
+          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a> — <span class="fact-num">${Math.round(top._rate)}%</span> of reviews removed.</span>`
+               + `<span class="fact-body">That's annihilation, not moderation.</span>`;
+        },
+      },
+      {
+        // floor_concentration: most removals in view come from capped (250+) venues
+        type: 'floor_concentration',
+        condition: (v) => {
+          if (v.totalRemoved === 0 || v.hits.filter(p => p._isFloor).length < 3) return false;
+          const floorRemoved = v.hits.filter(p => p._isFloor).reduce((s, p) => s + (p.removed_min || 0), 0);
+          return (floorRemoved / v.totalRemoved) >= 0.4;
+        },
+        text: (v) => {
+          const floors = v.hits.filter(p => p._isFloor);
+          const floorRemoved = floors.reduce((s, p) => s + (p.removed_min || 0), 0);
+          const pct = Math.round((floorRemoved / v.totalRemoved) * 100);
+          return `<span class="fact-title"><span class="fact-num">${pct}%</span> of removals here</span>`
+               + `<span class="fact-body">come from ${floors.length} venues that hit Google's 250 cap. The real total is unknowably higher.</span>`;
+        },
+      },
+      {
+        // venue_type_targeting: 80%+ of removal volume from one venue type
+        type: 'venue_type_targeting',
+        condition: (v) => {
+          if (v.hits.length < 4 || v.totalRemoved === 0) return false;
+          const byType = {};
+          v.hits.forEach(p => { const t = p.venue_type || 'other'; byType[t] = (byType[t] || 0) + (p.removed_min || 0); });
+          return (Math.max(...Object.values(byType)) / v.totalRemoved) >= 0.8;
+        },
+        text: (v) => {
+          const byType = {};
+          v.hits.forEach(p => { const t = p.venue_type || 'other'; byType[t] = (byType[t] || 0) + (p.removed_min || 0); });
+          const [topType, topCount] = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
+          const pct = Math.round((topCount / v.totalRemoved) * 100);
+          const label = { restaurant: 'restaurants', bar: 'bars', cafe: 'cafés', other: 'other venues' }[topType] || topType;
+          return `<span class="fact-title"><span class="fact-num">${pct}%</span> of removals here</span>`
+               + `<span class="fact-body">are from <span class="fact-strong">${label}</span>. One venue type is targeted.</span>`;
+        },
+      },
+      {
+        // mss_complaint_surge: MSS tier-3 (high social pressure) at 2× removal rate vs rest of viewport
+        type: 'mss_surge', priority: true, sessionMax: 1,
+        condition: (v) => {
+          if (v.hits.length < 5) return false;
+          const si3Hits = v.hits.filter(p => p.mss_si_n === 3).length;
+          const si3Ven  = v.visible.filter(p => p.mss_si_n === 3).length;
+          const otHits  = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const otVen   = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const si3Rate = si3Ven > 0 ? si3Hits / si3Ven : 0;
+          const otRate  = otVen > 0 ? otHits / otVen : 0;
+          return si3Rate > 0 && otRate > 0 && (si3Rate / otRate) >= 2;
+        },
+        text: (v) => {
+          const si3Hits = v.hits.filter(p => p.mss_si_n === 3).length;
+          const si3Ven  = v.visible.filter(p => p.mss_si_n === 3).length;
+          const otHits  = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const otVen   = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const ratio   = ((si3Hits / si3Ven) / (otHits / otVen)).toFixed(1);
+          return `<span class="fact-title">High social-pressure areas: <span class="fact-num">${ratio}×</span> the removal rate</span>`
+               + `<span class="fact-body">of lower-pressure zones in ${esc(v.district)}. The data follows the inequality map.</span>`;
+        },
+      },
+      {
+        type: 'calm',
+        condition: (v) => v.visible.length >= 5 && v.hits.length <= 1,
+        text: (v) => v.hits.length === 0
+          ? `<span class="fact-title">No recorded removals</span><span class="fact-body">in <span class="fact-strong">${esc(v.district)}</span>.</span>`
+          : `<span class="fact-title"><span class="fact-em">Just one venue</span></span><span class="fact-body">with removals recorded here.</span>`,
+      },
+    ],
+    de: [
+      {
+        type: 'outlier',
+        condition: (v) => {
+          if (v.hits.length < 3) return false;
+          const max = Math.max(...v.hits.map(p => p.removed_min || 0));
+          return v.totalRemoved > 0 && (max / v.totalRemoved) >= 0.45;
+        },
+        text: (v) => {
+          const sorted = [...v.hits].sort((a, b) => (b.removed_min || 0) - (a.removed_min || 0)).slice(0, 3);
+          const totalW = sorted.reduce((s, p) => s + (p.removed_min || 1), 0);
+          let r = Math.random() * totalW, top = sorted[sorted.length - 1];
+          for (const p of sorted) { r -= (p.removed_min || 1); if (r <= 0) { top = p; break; } }
+          const pct = top ? Math.round(((top.removed_min || 0) / v.totalRemoved) * 100) : null;
+          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a></span>`
+               + `<span class="fact-body">steht für <span class="fact-num">${pct || 'die meisten'} %</span> der Entfernungen in ${esc(v.district)}.</span>`;
+        },
+      },
+      {
+        type: 'floor',
+        condition: (v) => {
+          const floors = v.hits.filter(p => p._isFloor).length;
+          return floors >= 4 || (floors >= 3 && v.hits.length > 0 && floors / v.hits.length >= 0.33);
+        },
+        text: (v) => {
+          const n = v.hits.filter(p => p._isFloor).length;
+          const label = n === 1 ? 'Betrieb' : 'Betriebe';
+          return `<span class="fact-title"><span class="fact-num">${n}</span> ${label} haben das Limit erreicht.</span>`
+               + `<span class="fact-body">Google zeigt maximal 250 pro Betrieb an. Die tatsächliche Zahl in ${esc(v.district)} ist unbekannt.</span>`;
+        },
+      },
+      {
+        type: 'rating', sessionMax: 1,
+        condition: (v) => v.hits.filter(p => p._ratingDelta && p._ratingDelta >= 0.3).length >= 3,
+        text: (v) => {
+          const candidates = v.hits.filter(p => p._ratingDelta && p._ratingDelta >= 0.3)
+            .sort((a, b) => b._ratingDelta - a._ratingDelta).slice(0, 3);
+          const totalW = candidates.reduce((s, p) => s + p._ratingDelta, 0);
+          let r = Math.random() * totalW, pick = candidates[candidates.length - 1];
+          for (const p of candidates) { r -= p._ratingDelta; if (r <= 0) { pick = p; break; } }
+          const adj = Math.round((pick.star_rating - pick._ratingDelta) * 10) / 10;
+          const hash = pick.lat && pick.lng ? `#@${pick.lat.toFixed(5)},${pick.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(pick.id)}" class="fact-venue-link"><span class="fact-strong">${esc(pick.name)}</span></a> — <span class="fact-star">${pick.star_rating}★</span></span>`
+               + `<span class="fact-body">Könnte nur <span class="fact-star">${adj}★</span> sein, wenn entfernte Bewertungen mitzählen.</span>`;
+        },
+      },
+      {
+        type: 'mss',
+        priority: true,
+        condition: (v) => {
+          if (!_mssCityStats[2] || v.hits.length < 5) return false;
+          const si2Hits   = v.hits.filter(p => p.mss_si_n === 2).length;
+          const si2Venues = v.visible.filter(p => p.mss_si_n === 2).length;
+          const otherHits = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 2).length;
+          const otherVen  = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 2).length;
+          if (si2Venues < 3 || otherVen < 3) return false;
+          const si2Rate   = si2Hits / si2Venues;
+          const otherRate = otherHits / otherVen;
+          return otherRate > 0 && (si2Rate / otherRate) >= 1.5;
+        },
+        text: () => {
+          const pct = _mssCityStats[2]?.pct;
+          return pct
+            ? `<span class="fact-title">${pct} % aller Entfernungen</span><span class="fact-body">entfallen auf Gebiete mit mittlerem Sozialdruck – den Gewerbegürtel.</span>`
+            : '';
+        },
+      },
+      {
+        type: 'launder',
+        condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
+        text: (v) => {
+          const n = v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length;
+          if (n < 2) return '';
+          const label = n === 1 ? 'Betrieb' : 'Betriebe';
+          return `<span class="fact-title"><span class="fact-num">${n}</span> ${label} mit <span class="fact-star">4,5★+</span></span>`
+               + `<span class="fact-body">in ${esc(v.district)}, je mit <span class="fact-num">150+</span> entfernten Bewertungen.</span>`;
+        },
+      },
+      {
+        type: 'district',
+        condition: (v) => {
+          if (v.citywide || v.zoom < AREA_ZOOM_MIN) return false;
+          if (v.hits.length < 10) return false;
+          const dHits = {}, dVen = {};
+          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
+          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
+          const ranked = Object.entries(dHits)
+            .filter(([a]) => (dVen[a] || 0) >= 5)
+            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
+            .sort((a, b) => b.rate - a.rate);
+          if (ranked.length < 2) return false;
+          return (ranked[0].rate / ranked[ranked.length - 1].rate) >= 1.5;
+        },
+        text: (v) => {
+          const dHits = {}, dVen = {};
+          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
+          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
+          const ranked = Object.entries(dHits)
+            .filter(([a]) => (dVen[a] || 0) >= 5)
+            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
+            .sort((a, b) => b.rate - a.rate);
+          if (ranked.length < 2) return '';
+          const top = ranked[0], bot = ranked[ranked.length - 1];
+          return `<span class="fact-title">${esc(top.area)}</span>`
+               + `<span class="fact-body">hat <span class="fact-num">${(top.rate / bot.rate).toFixed(1).replace('.', ',')}-fache</span> Entfernungsrate von ${esc(bot.area)}.</span>`;
+        },
+      },
+      {
+        // general_density: merged from 'general' + 'density' — shows city comparison when meaningful
+        type: 'general_density', sessionMax: 1,
+        condition: (v) => v.visible.length >= 5 && v.hits.length >= 2 && v.hitRate >= 0.005,
+        text: (v) => {
+          const ratio = (_cityHitRate > 0) ? v.hitRate / _cityHitRate : 1;
+          if (ratio >= 1.2 && _cityHitRate > 0) {
+            const areaPct = Math.round(v.hitRate * 100);
+            return `<span class="fact-title"><span class="fact-num">${areaPct} %</span> der Betriebe</span>`
+                 + `<span class="fact-body">in ${esc(v.district)} haben Entfernungen — <span class="fact-strong"><span class="fact-num">${ratio.toFixed(1).replace('.', ',')}×</span> der Stadtdurchschnitt.</span></span>`;
+          }
+          if (v.hitRate >= 0.04) {
+            const n = Math.round(1 / v.hitRate);
+            return `<span class="fact-title"><span class="fact-num">1 von ${n}</span> Betrieben</span>`
+                 + `<span class="fact-body">in ${esc(v.district)} hat entfernte Bewertungen.</span>`;
+          }
+          const pct = Math.max(1, Math.round(v.hitRate * 100));
+          return `<span class="fact-title"><span class="fact-num">${pct} %</span> der Betriebe</span>`
+               + `<span class="fact-body">in ${esc(v.district)} haben entfernte Bewertungen.</span>`;
+        },
+      },
+      {
+        type: 'review_grave', sessionMax: 1,
+        condition: (v) => v.hits.some(p => (p._rate || 0) >= 40 && (p.removed_min || 0) >= 50),
+        text: (v) => {
+          const top = [...v.hits].filter(p => (p._rate || 0) >= 40 && (p.removed_min || 0) >= 50)
+            .sort((a, b) => (b._rate || 0) - (a._rate || 0))[0];
+          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
+          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a> — <span class="fact-num">${Math.round(top._rate)} %</span> aller Bewertungen entfernt.</span>`
+               + `<span class="fact-body">Das ist keine Moderation. Das ist Auslöschung.</span>`;
+        },
+      },
+      {
+        type: 'floor_concentration',
+        condition: (v) => {
+          if (v.totalRemoved === 0 || v.hits.filter(p => p._isFloor).length < 3) return false;
+          const floorRemoved = v.hits.filter(p => p._isFloor).reduce((s, p) => s + (p.removed_min || 0), 0);
+          return (floorRemoved / v.totalRemoved) >= 0.4;
+        },
+        text: (v) => {
+          const floors = v.hits.filter(p => p._isFloor);
+          const floorRemoved = floors.reduce((s, p) => s + (p.removed_min || 0), 0);
+          const pct = Math.round((floorRemoved / v.totalRemoved) * 100);
+          return `<span class="fact-title"><span class="fact-num">${pct} %</span> der Entfernungen hier</span>`
+               + `<span class="fact-body">stammen von ${floors.length} Betrieben, die Googles 250er-Grenze erreicht haben. Die wahre Zahl ist unbekannt.</span>`;
+        },
+      },
+      {
+        // venue_type_targeting: 80%+ of removal volume from one venue type
+        type: 'venue_type_targeting',
+        condition: (v) => {
+          if (v.hits.length < 4 || v.totalRemoved === 0) return false;
+          const byType = {};
+          v.hits.forEach(p => { const t = p.venue_type || 'other'; byType[t] = (byType[t] || 0) + (p.removed_min || 0); });
+          return (Math.max(...Object.values(byType)) / v.totalRemoved) >= 0.8;
+        },
+        text: (v) => {
+          const byType = {};
+          v.hits.forEach(p => { const t = p.venue_type || 'other'; byType[t] = (byType[t] || 0) + (p.removed_min || 0); });
+          const [topType, topCount] = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
+          const pct = Math.round((topCount / v.totalRemoved) * 100);
+          const label = { restaurant: 'Restaurants', bar: 'Bars', cafe: 'Cafés', other: 'sonstigen Betrieben' }[topType] || topType;
+          return `<span class="fact-title"><span class="fact-num">${pct} %</span> der Entfernungen hier</span>`
+               + `<span class="fact-body">stammen von <span class="fact-strong">${label}</span>. Ein Betriebstyp wird gezielt.</span>`;
+        },
+      },
+      {
+        type: 'mss_surge', priority: true, sessionMax: 1,
+        condition: (v) => {
+          if (v.hits.length < 5) return false;
+          const si3Hits = v.hits.filter(p => p.mss_si_n === 3).length;
+          const si3Ven  = v.visible.filter(p => p.mss_si_n === 3).length;
+          const otHits  = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const otVen   = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const si3Rate = si3Ven > 0 ? si3Hits / si3Ven : 0;
+          const otRate  = otVen > 0 ? otHits / otVen : 0;
+          return si3Rate > 0 && otRate > 0 && (si3Rate / otRate) >= 2;
+        },
+        text: (v) => {
+          const si3Hits = v.hits.filter(p => p.mss_si_n === 3).length;
+          const si3Ven  = v.visible.filter(p => p.mss_si_n === 3).length;
+          const otHits  = v.hits.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const otVen   = v.visible.filter(p => p.mss_si_n && p.mss_si_n !== 3).length;
+          const ratio   = ((si3Hits / si3Ven) / (otHits / otVen)).toFixed(1).replace('.', ',');
+          return `<span class="fact-title">Sozial belastete Gebiete: <span class="fact-num">${ratio}×</span> die Entfernungsrate</span>`
+               + `<span class="fact-body">gegenüber weniger belasteten Zonen in ${esc(v.district)}. Die Daten folgen der Ungleichheitskarte.</span>`;
+        },
+      },
+      {
+        type: 'calm',
+        condition: (v) => v.visible.length >= 5 && v.hits.length <= 1,
+        text: (v) => v.hits.length === 0
+          ? `<span class="fact-title">Keine erfassten Entfernungen</span><span class="fact-body">in <span class="fact-strong">${esc(v.district)}</span>.</span>`
+          : `<span class="fact-title"><span class="fact-em">Nur ein Betrieb</span></span><span class="fact-body">mit Entfernungen hier sichtbar.</span>`,
+      },
+    ],
+  };
+
+  const EDITORIAL_STORIES = {
+    // weight: 3=high, 2=medium, 1=low — type shared with STAT_STORIES where overlap exists
+    en: [
+      {
+        type: 'netzDG', weight: 3,
+        text: () => `<span class="fact-title">NetzDG: 24 hours to comply or face €50M.</span>`
+                  + `<span class="fact-body">Germany's hate-speech law. Platforms comply fast — and broadly. <span class="fact-strong">It also removes one-star reviews.</span></span>`,
+      },
+      {
+        type: 'judge', weight: 3,
+        text: () => `<span class="fact-title">Google is the judge, the prosecutor, and the executor.</span>`
+                  + `<span class="fact-body">A lawyer files. Google decides. The review disappears. <span class="fact-strong">No appeal outside Google itself.</span></span>`,
+      },
+      {
+        type: 'diffamierung', weight: 3,
+        text: () => `<span class="fact-title">Google calls it <span class="fact-em">Diffamierung</span>.</span>`
+                  + `<span class="fact-body">Defamation. A lawyer files a claim. Google removes the review. <span class="fact-strong">Not an algorithm — a legal decision.</span></span>`,
+      },
+      {
+        type: 'no_text', weight: 3,
+        text: () => `<span class="fact-title">At least one removal had no review text.</span>`
+                  + `<span class="fact-body">Just a star rating. <span class="fact-strong">Removed anyway.</span></span>`,
+      },
+      {
+        type: 'cash', weight: 2,
+        text: () => `<span class="fact-title">Berlin runs on cash.</span>`
+                  + `<span class="fact-body">No receipt means you can't prove you were a customer. <span class="fact-strong">That's enough to remove your review.</span></span>`,
+      },
+      {
+        type: 'lawyer', weight: 2,
+        text: () => `<span class="fact-title">Google won't say who filed.</span>`
+                  + `<span class="fact-body">The complaint is signed <span class="fact-em">"gez. Rechtsanwalt"</span> — a lawyer. <span class="fact-strong">No name. No firm. The review is gone anyway.</span></span>`,
+      },
+      {
+        type: 'firms', weight: 2,
+        text: () => `<span class="fact-title">Review removal is a service you can buy.</span>`
+                  + `<span class="fact-body">At least ten firms offer it. From €49 per complaint.</span>`,
+      },
+      {
+        type: 'floor', weight: 1,
+        text: () => `<span class="fact-title">Google stops disclosing above 250.</span>`
+                  + `<span class="fact-body">That's the cap on what they show per venue. <span class="fact-strong">The real number may be far higher.</span></span>`,
+      },
+      {
+        type: 'appeals', weight: 2,
+        text: () => `<span class="fact-title">The same law that caused this also exposed it.</span>`
+                  + `<span class="fact-body">NetzDG made review removal possible. Then it forced Google to disclose it. <span class="fact-strong">Outside Germany, neither exists.</span></span>`,
+      },
+    ],
+    de: [
+      {
+        type: 'netzDG', weight: 3,
+        text: () => `<span class="fact-title">NetzDG: 24 Stunden – oder 50 Mio. € Strafe.</span>`
+                  + `<span class="fact-body">Deutschlands Hassrede-Gesetz. Plattformen handeln schnell – und weit. <span class="fact-strong">Es entfernt auch Ein-Stern-Bewertungen.</span></span>`,
+      },
+      {
+        type: 'judge', weight: 3,
+        text: () => `<span class="fact-title">Google ist Richter, Ankläger und Vollstrecker.</span>`
+                  + `<span class="fact-body">Ein Anwalt stellt Antrag. Google entscheidet. Die Bewertung verschwindet. <span class="fact-strong">Kein Widerspruch außerhalb von Google selbst.</span></span>`,
+      },
+      {
+        type: 'diffamierung', weight: 3,
+        text: () => `<span class="fact-title">Google nennt es <span class="fact-em">Diffamierung</span>.</span>`
+                  + `<span class="fact-body">Verleumdung. Ein Anwalt stellt einen Antrag. Google entfernt die Bewertung. <span class="fact-strong">Kein Algorithmus – eine Rechtsentscheidung.</span></span>`,
+      },
+      {
+        type: 'no_text', weight: 3,
+        text: () => `<span class="fact-title">Mindestens eine Entfernung hatte keinen Bewertungstext.</span>`
+                  + `<span class="fact-body">Nur Sterne. <span class="fact-strong">Trotzdem entfernt.</span></span>`,
+      },
+      {
+        type: 'cash', weight: 2,
+        text: () => `<span class="fact-title">Berlin zahlt bar.</span>`
+                  + `<span class="fact-body">Kein Kassenbon, kein Nachweis als Kunde. <span class="fact-strong">Genug, um eine Bewertung zu entfernen.</span></span>`,
+      },
+      {
+        type: 'lawyer', weight: 2,
+        text: () => `<span class="fact-title">Google sagt nicht, wer klagte.</span>`
+                  + `<span class="fact-body">Unterzeichnet <span class="fact-em">„gez. Rechtsanwalt"</span> – ein Anwalt. <span class="fact-strong">Kein Name. Keine Kanzlei. Die Bewertung ist trotzdem weg.</span></span>`,
+      },
+      {
+        type: 'firms', weight: 2,
+        text: () => `<span class="fact-title">Bewertungsentfernung ist käuflich.</span>`
+                  + `<span class="fact-body">Mindestens zehn Firmen bieten es an. Ab 49 € pro Beschwerde.</span>`,
+      },
+      {
+        type: 'floor', weight: 1,
+        text: () => `<span class="fact-title">Google zeigt maximal 250 Entfernungen an.</span>`
+                  + `<span class="fact-body">Das ist die Obergrenze der Anzeige pro Betrieb. <span class="fact-strong">Die echte Zahl kann weit höher liegen.</span></span>`,
+      },
+      {
+        type: 'appeals', weight: 2,
+        text: () => `<span class="fact-title">Dasselbe Gesetz hat das Problem verursacht – und aufgedeckt.</span>`
+                  + `<span class="fact-body">Das NetzDG hat Bewertungsentfernungen ermöglicht. Und Google zur Offenlegung gezwungen. <span class="fact-strong">Außerhalb Deutschlands existiert beides nicht.</span></span>`,
+      },
+    ],
+  };
+
+  function modalDistrict(places) {
+    if (!places.length) return null;
+    const counts = {};
+    places.forEach(p => { if (p.area) counts[p.area] = (counts[p.area] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    return top ? top[0] : null;
+  }
+
+  // Prefer Planungsraum (kiez) name when ≥3 hits share one AND they represent ≥30% of
+  // the input — the proportion guard stops spurious kiez labels at city-wide zoom where
+  // any kiez can trivially reach 3 even though it's a tiny fraction of visible hits.
+  function modalKiez(places) {
+    if (!places.length) return null;
+    const counts = {};
+    places.forEach(p => { if (p.mss_plr_name) counts[p.mss_plr_name] = (counts[p.mss_plr_name] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (top && top[1] >= 3 && top[1] / places.length >= 0.30) return top[0];
+    return modalDistrict(places);
+  }
+
+  // Minimum zoom level before we report a named area. Below this the viewport
+  // spans multiple districts and labelling the most-common one (Mitte) is misleading.
+  // HOME_ZOOM is 13 (whole ring visible) — require at least 14 to show a district label.
+  const AREA_ZOOM_MIN = 14;
+
+  function getViewData() {
+    if (!map || !allData.length) return null;
+    const zoom         = map.getZoom();
+    const bounds       = map.getBounds();
+    const visible      = bounds ? allData.filter(p => p.lat && p.lng && bounds.contains([p.lat, p.lng])) : allData;
+    const hits         = visible.filter(p => (p.removed_min || 0) > 0);
+    const totalRemoved = hits.reduce((s, p) => s + (p.removed_min || 0), 0);
+
+    // Below zoom threshold → treat as citywide; don't assign a district label
+    if (zoom < AREA_ZOOM_MIN) {
+      return { visible, hits, totalRemoved, hitRate: _cityHitRate, district: 'Berlin', kiez: 'Berlin', citywide: true, zoom };
+    }
+
+    // Use per-area checked count from meta if available, else fall back to city rate
+    const dominantArea = modalDistrict(hits.length ? hits : visible);
+    const areaChecked  = (window._areaStats && dominantArea && window._areaStats[dominantArea])
+                         ? window._areaStats[dominantArea].checked : null;
+    const hitRate      = areaChecked > 0 ? hits.length / areaChecked : _cityHitRate;
+    const district     = dominantArea || 'Berlin';
+    const kiez         = modalKiez(hits.length ? hits : visible) || district;
+    return { visible, hits, totalRemoved, hitRate, district, kiez, citywide: false, zoom };
+  }
+
+  function updatePersistentZone() {
+    const v = getViewData();
+    if (!v) return;
+
+    const S        = STRINGS[currentLang];
+    const isZero   = v.hits.length === 0;
+    const hasFloor = v.hits.some(p => p._isFloor);
+    const locale   = currentLang === 'de' ? 'de' : 'en';
+    const numStr   = isZero ? '0' : v.totalRemoved.toLocaleString(locale) + '+';
+    const lblStr   = isZero ? S.areaZero : S.areaLabel;
+
+    const elArea   = document.getElementById('hs-persist-area');
+    const elDot    = document.getElementById('hs-persist-dot');
+    const elNumber = document.getElementById('hs-persist-number');
+    const elLabel  = document.getElementById('hs-persist-label');
+    if (!elArea) return;
+
+    // Show dot + area only when kiez/district is more specific than "Berlin"
+    const areaName = (v.kiez && v.kiez !== 'Berlin') ? v.kiez : '';
+
+    // Only animate if something actually changed
+    if (elArea.textContent === areaName && elNumber.textContent === numStr) return;
+
+    elArea.classList.add('updating');
+    elNumber.classList.add('updating');
+    setTimeout(() => {
+      elArea.textContent      = areaName;
+      if (elDot) elDot.style.display = areaName ? '' : 'none';
+      elNumber.textContent    = numStr;
+      elLabel.textContent     = lblStr;
+      _lastPersistZero        = isZero;
+      elArea.classList.remove('updating');
+      elNumber.classList.remove('updating');
+    }, 150);
+  }
+
+  function animateStatCard(html) {
+    const el = document.getElementById('hs-fact-text');
+    if (!el) return;
+    el.classList.add('updating');
+    setTimeout(() => {
+      el.innerHTML = html;
+      el.classList.remove('updating');
+    }, 200);
+  }
+
+  function fireEditorial() {
+    const pool = EDITORIAL_STORIES[currentLang] || EDITORIAL_STORIES.en;
+    const weighted = [];
+    // Build a weighted index array: each story's index appears `weight` times.
+    // weight:3 = 3× more likely than weight:1. After ≥2 fires, weight collapses to 1
+    // so high-weight stories don't completely dominate long sessions.
+    pool.forEach((s, i) => {
+      if (i === _lastEditorialIdx) return;
+      if (s.type === _lastStatType) return;  // no same-type back-to-back
+      const seen = _sessionTypeCounts[s.type] || 0;
+      const w = seen >= 2 ? 1 : (s.weight || 1);
+      for (let j = 0; j < w; j++) weighted.push(i);
+    });
+    if (!weighted.length) return; // all suppressed — skip silently
+    const pick = weighted[Math.floor(Math.random() * weighted.length)];
+    _lastEditorialIdx = pick;
+    _countType(pool[pick].type);
+    animateStatCard(pool[pick].text());
+  }
+
+  function updateStatCard() {
+    if (_obTransitioning) return; // intro exit in progress — don't update content or size
+    const v = getViewData();
+    if (!v) return;
+    // Protect the opening factoid — skip the first auto-fire (tile-load moveend, etc.)
+    // so the citywide overview stays visible until the user actually pans.
+    if (!_openingDone) { _openingDone = true; return; }
+
+    // Citywide (zoom < AREA_ZOOM_MIN): no district stories. If we just zoomed OUT from district
+    // level (_lastCitywide was false), replay the opening factoid with a fade transition.
+    // Subsequent citywide pans skip silently — _lastCitywide is already true.
+    if (v.citywide) {
+      if (!_lastCitywide && window._citywideFactoidHTML) {
+        animateStatCard(window._citywideFactoidHTML);
+      }
+      _lastCitywide = true;
+      return;
+    }
+    _lastCitywide = false;
+    _panCount++;
+    // Every 4th pan fires an editorial atom (static framing) instead of a data story.
+    // This breaks up data-density and keeps the journalistic voice present.
+    if (_panCount % 4 === 0) { fireEditorial(); return; }
+    const stories = STAT_STORIES[currentLang] || STAT_STORIES.en;
+    const seenHere = _seenByDistrict[v.district] || new Set();
+
+    // Primary pool: condition met + not back-to-back + not seen in this district + session cap not hit.
+    // sessionMax per story defaults to 2; override with s.sessionMax for stories that should repeat less.
+    const eligible = stories.filter(s => {
+      if (!s.condition(v)) return false;
+      if (s.type === _lastStatType) return false;
+      if (seenHere.has(s.type)) return false;
+      return (_sessionTypeCounts[s.type] || 0) < (s.sessionMax || 2);
+    });
+    // Fallback pool: relax the per-district uniqueness filter if we've exhausted fresh stories here.
+    const fallbackEligible = eligible.length ? eligible : stories.filter(s => {
+      if (!s.condition(v)) return false;
+      if (s.type === _lastStatType) return false;
+      return (_sessionTypeCounts[s.type] || 0) < (s.sessionMax || 2);
+    });
+    // priority:true stories (e.g. mss) surface first on their debut — fire before random selection.
+    const pool = fallbackEligible;
+    const priority = pool.find(s => s.priority && (_sessionTypeCounts[s.type] || 0) === 0);
+    const story = priority || (pool.length ? pool[Math.floor(Math.random() * pool.length)] : null) || stories.find(s => s.condition(v) && s.type !== _lastStatType);
+    if (!story) { fireEditorial(); return; }
+    // Record this type as seen for this district
+    if (!_seenByDistrict[v.district]) _seenByDistrict[v.district] = new Set();
+    _seenByDistrict[v.district].add(story.type);
+    _countType(story.type);
+    animateStatCard(story.text(v));
+  }
+
+  function scheduleStatUpdate() {
+    // Persistent zone: fire immediately, no debounce — it's always-on area info
+    updatePersistentZone();
+    // Factoid zone: debounced to avoid thrashing during a continuous pan
+    clearTimeout(_statDebounce);
+    _statDebounce = setTimeout(updateStatCard, 400);
+  }
+
+  // ── Onboarding beat engine ────────────────────────────────────────────────
+  const OB_BEATS_DE = [
+    {
+      kicker: '',
+      head: 'Deutschland verabschiedete ein Gesetz, um Nazis im Netz zu stoppen.<span class="ob-gap"></span>In Berlin löscht es <strong><em>Restaurantbewertungen.</em></strong>',
+      note: null, dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'Der Mechanismus',
+      head: '§ <em>NetzDG</em> wurde 2017 verabschiedet<br>um Hassrede im Netz zu bekämpfen.',
+      note: 'Etwas als <em>„offensichtlich rechtswidrig"</em> melden.<br>Die Plattform hat <strong>24 Stunden</strong> zur Entfernung.<br>Strafe bei Verstoß: <strong>50 Millionen Euro.</strong><br><br><span class="ob-note-callout"><span class="ob-accent">Verleumdung ist abgedeckt.</span> Berlins Anwälte haben das bemerkt.</span>',
+      dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'Das Ausmaß',
+      head: null, note: null,
+      dim: .82, markers: false, counter: true,
+    },
+    {
+      kicker: 'Die Branche',
+      head: 'Eine Firma namens <strong>Löschkönig</strong> rühmt sich<br><span class="ob-accent">40.000 Löschungen</span> in Deutschland.',
+      note: 'Man braucht keinen Fall. Man braucht 49 €.',
+      dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'Die Karte',
+      head: 'Jede Markierung ist ein Betrieb <strong>mit Löschungen.</strong><br>Manche einmal. Manche systematisch.<span class="ob-gap"></span>Manche haben es <span class="ob-big ob-accent">über 250 Mal</span> getan.',
+      note: null, dim: .28, markers: true, revealMarkers: true, counter: false,
+    },
+    {
+      kicker: 'Die Nuancen',
+      head: 'Für Betriebe ist der Druck <span class="ob-accent">real.</span><br><strong>Die Mieten haben sich verdoppelt.</strong><br><em>Manche Löschungen haben echte Gründe.</em>',
+      note: null, dim: .22, markers: true, counter: false,
+    },
+    {
+      kicker: null, head: null, closer: true,
+      prequote: 'Und doch bleibt eine Tatsache:',
+      closerHtml: 'Gebaut, um <strong>Hassrede</strong> zu bekämpfen.<br>Benutzt, um <strong>eine Ein-Stern-Bewertung</strong> zu begraben.',
+      dim: .10, markers: true, counter: false, isLast: true,
+    },
+  ];
+
+  const OB_BEATS = [
+    {
+      kicker: '',
+      head: 'Germany made a law to stop Nazis online.<span class="ob-gap"></span>In Berlin, it\'s <strong><em>removing restaurant reviews.</em></strong>',
+      note: null, dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'The mechanism',
+      head: '§ <em>NetzDG</em> passed in 2017<br>to fight online hate speech.',
+      note: 'Flag something as <em>clearly illegal.</em><br>The platform has <strong>24 hours</strong> to remove it.<br>Fine for non-compliance: <strong>€50 million.</strong><br><br><span class="ob-note-callout"><span class="ob-accent">Defamation is covered.</span> Berlin\'s lawyers noticed.</span>',
+      dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'The scale',
+      head: null,
+      note: null,
+      dim: .82, markers: false, counter: true,
+    },
+    {
+      kicker: 'The industry',
+      head: 'A firm called <strong>Deletion King</strong> boasts<br><span class="ob-accent">40,000 removals</span> across Germany.',
+      note: 'You don\'t need a case. You need €49.',
+      dim: .82, markers: false, counter: false,
+    },
+    {
+      kicker: 'The map',
+      head: 'Every map pin is a venue <strong>with removals.</strong><br>Some do it once. Some systematically.<span class="ob-gap"></span>Some have done it <span class="ob-big ob-accent">over 250 times.</span>',
+      note: null, dim: .28, markers: true, revealMarkers: true, counter: false,
+    },
+    {
+      kicker: 'The nuance',
+      head: 'For businesses, the pressure is <span class="ob-accent">real.</span><br><strong>Rent doubled.</strong><br><em>Some removals have genuine reasons.</em>',
+      note: null, dim: .22, markers: true, counter: false,
+    },
+    {
+      kicker: null, head: null, closer: true,
+      prequote: 'But the fact remains:',
+      closerHtml: 'Built to fight <strong>hate speech.</strong><br>Used to bury <strong>a one-star rating.</strong>',
+      dim: .10, markers: true, counter: false, isLast: true,
+    },
+  ];
+
+  function _obBeats() { return currentLang === 'de' ? OB_BEATS_DE : OB_BEATS; }
+
+  function _obBuildPips() {
+    const el = document.getElementById('ob-pips');
+    if (!el) return;
+    el.innerHTML = '';
+    _obBeats().forEach((_, i) => {
+      const p = document.createElement('div');
+      p.className = 'ob-pip' + (i === _obBeat ? ' ob-pip-active' : i < _obBeat ? ' ob-pip-past' : '');
+      el.appendChild(p);
+    });
+  }
+
+  function _obAnimCounter() {
+    if (_obCounterTimer) clearInterval(_obCounterTimer);
+    const el = document.getElementById('ob-num-el');
+    if (!el) return;
+    const target = _cityTotalRemoved || allData.reduce((s, p) => s + (p.removed_min || 0), 0);
+    if (!target) { el.textContent = '—'; return; }
+    let v = 0;
+    const step = Math.ceil(target / 80);
+    _obCounterTimer = setInterval(() => {
+      v = Math.min(v + step, target);
+      el.textContent = v.toLocaleString();
+      if (v >= target) {
+        clearInterval(_obCounterTimer);
+        el.textContent = target.toLocaleString() + '+';
+      }
+    }, 20);
+  }
+
+  function _obRevealMarkers() {
+    const markers = Object.values(markerMap);
+    const shuffled = [...markers].sort(() => Math.random() - 0.5);
+    const spread = 4200; // spread over ~4s
+    shuffled.forEach((e, i) => {
+      const delay = Math.max(0, (i / shuffled.length) * spread + (Math.random() - 0.5) * 400);
+      setTimeout(() => {
+        const el    = e.marker.getElement && e.marker.getElement();
+        const inner = el && el.firstElementChild;
+        // Lock inner to scale(0) before making outer visible
+        if (inner) {
+          inner.style.transition      = 'none';
+          inner.style.transform       = 'scale(0)';
+          inner.style.transformOrigin = 'center center';
+        }
+        // Show outer instantly — scale animation owns the entrance
+        if (el) el.style.transition = 'none';
+        e.marker.setOpacity(1);
+        // Two rAFs so the scale(0) is painted before we start animating
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (!inner) return;
+          // cubic-bezier(0.34,1.56,0.64,1) naturally overshoots ~1.3× then settles
+          inner.style.transition = 'transform 0.95s cubic-bezier(0.34, 1.56, 0.64, 1)';
+          inner.style.transform  = 'scale(1)';
+          setTimeout(() => {
+            if (inner) { inner.style.transition = ''; inner.style.transform = ''; }
+            // Restore outer so Leaflet can use its own transitions for pan/zoom
+            if (el) el.style.transition = '';
+          }, 1050);
+        }));
+      }, delay);
+    });
+  }
+
+  function _obShow(idx) {
+    const b = _obBeats()[idx];
+
+    const dim = document.getElementById('ob-dim');
+    if (dim) dim.style.opacity = b.dim;
+
+    const kicker = document.getElementById('ob-kicker-el');
+    if (kicker) {
+      if (b.closer && b.prequote) {
+        kicker.textContent = b.prequote;
+        kicker.style.cssText = '';
+        kicker.classList.add('ob-kicker--serif');
+      } else {
+        kicker.textContent = b.kicker || '';
+        kicker.style.cssText = '';
+        kicker.classList.remove('ob-kicker--serif');
+      }
+    }
+
+    const head = document.getElementById('ob-head-el');
+    if (head) {
+      if (b.closer) {
+        head.innerHTML = '<span class=”ob-closer”>' + (b.closerHtml || '') + '</span>';
+        head.className = 'ob-head';
+      } else {
+        head.innerHTML = b.head || '';
+        head.className = 'ob-head';
+      }
+    }
+
+    const cWrap = document.getElementById('ob-counter-wrap');
+    if (cWrap) {
+      if (b.counter) {
+        cWrap.style.display = '';
+        const lbl = document.getElementById('ob-numlabel-el');
+        if (lbl) lbl.innerHTML = currentLang === 'de'
+          ? 'Bewertungen wegen Verleumdungsbeschwerden entfernt<br>— in Berlin, im letzten Jahr'
+          : 'Google reviews removed in Berlin<br>due to defamation complaints — in the last year';
+        _obAnimCounter();
+      } else {
+        cWrap.style.display = 'none';
+      }
+    }
+
+    const note = document.getElementById('ob-note-el');
+    if (note) {
+      if (b.note) { note.innerHTML = b.note; note.style.display = ''; }
+      else note.style.display = 'none';
+    }
+
+    if (b.revealMarkers) _obRevealMarkers();
+
+    const nextBtn = document.getElementById('ob-next');
+    if (nextBtn) nextBtn.textContent = b.isLast ? 'Open the map →' : 'Next';
+
+    _obBuildPips();
+    const stage = document.getElementById('ob-stage');
+    if (stage) stage.classList.remove('ob-out');
+  }
+
+  let _obHeightCleanup = null;
+
+  function _obTransition(idx) {
+    _obBeat = idx;
+    const stage = document.getElementById('ob-stage');
+    const panel = document.getElementById('ob-panel');
+
+    // Cancel any in-flight height cleanup from a previous transition
+    if (_obHeightCleanup) { clearTimeout(_obHeightCleanup); _obHeightCleanup = null; }
+
+    // Always re-lock current rendered height before content changes
+    if (panel) {
+      panel.style.transition = 'none';
+      panel.style.height     = panel.offsetHeight + 'px';
+      panel.style.overflow   = 'hidden';
+    }
+
+    if (stage) stage.classList.add('ob-out');
+
+    setTimeout(() => {
+      _obShow(idx);
+
+      if (panel) {
+        requestAnimationFrame(() => {
+          // Measure true auto-height: go to auto, read, snap back — all before paint
+          // Use offsetHeight (CSS layout pixels) not getBoundingClientRect (visual pixels)
+          // — the latter is affected by html { zoom: 0.9 } and produces wrong values.
+          const lockedH = panel.style.height;
+          panel.style.transition = 'none';
+          panel.style.height     = 'auto';
+          const newH = panel.offsetHeight;
+          panel.style.height     = lockedH;
+
+          requestAnimationFrame(() => {
+            panel.style.transition = 'height 0.45s cubic-bezier(0.4, 0, 0.2, 1)';
+            panel.style.height     = newH + 'px';
+            _obHeightCleanup = setTimeout(() => {
+              _obHeightCleanup = null;
+              panel.style.transition = 'none';
+              panel.style.height     = '';
+              panel.style.overflow   = '';
+              requestAnimationFrame(() => { panel.style.transition = ''; });
+            }, 480);
+          });
+        });
+      }
+    }, 350);
+  }
+
+  function _obFinish() {
+    if (!_obActive) return;
+    _obActive        = false;
+    // _obTransitioning freezes stat card updates and list re-renders during the intro exit animation.
+    // Without this, the moveend fired by the map fly-in would overwrite the onboarding content mid-transition.
+    _obTransitioning = true;
+    document.cookie = 'seen_intro=1; path=/; max-age=31536000';
+
+    if (_obCounterTimer) clearInterval(_obCounterTimer);
+    Object.values(markerMap).forEach(e => e.marker.setOpacity(1));
+
+    const ob    = document.getElementById('ob-container');
+    const panel = document.getElementById('ob-panel');
+    const hs    = document.getElementById('headline-stat');
+    const dim   = document.getElementById('ob-dim');
+
+    // ── Fade out panel + dim, fade in stat card ───────────────────────────────
+    const stage = document.getElementById('ob-stage');
+    const nav   = document.getElementById('ob-nav');
+    if (stage) { stage.style.transition = 'opacity .25s ease'; stage.style.opacity = '0'; }
+    if (nav)   { nav.style.transition   = 'opacity .25s ease'; nav.style.opacity   = '0'; }
+    if (dim)   { dim.style.transition   = 'opacity .6s ease';  dim.style.opacity   = '0'; }
+
+    // Fade the whole panel out after content has gone
+    setTimeout(() => {
+      if (panel) { panel.style.transition = 'opacity .4s ease'; panel.style.opacity = '0'; }
+    }, 200);
+
+    // Reveal stat card and remove ob-container once panel is gone
+    setTimeout(() => {
+      if (hs) {
+        hs.style.pointerEvents = '';
+        hs.style.transition    = 'opacity .4s ease';
+        hs.style.opacity       = '1';
+        setTimeout(() => { hs.style.transition = ''; hs.style.opacity = ''; }, 450);
+      }
+      if (ob) {
+        ob.style.transition = 'opacity .3s ease';
+        ob.style.opacity    = '0';
+        setTimeout(() => { if (ob.parentNode) ob.parentNode.removeChild(ob); }, 350);
+      }
+    }, 550); // content gone at 450ms, 100ms buffer
+
+    // ── Reveal sidebar + overlays ─────────────────────────────────────────────
+    // Remove ob-start class to let the sidebar width animate back in
+    document.documentElement.classList.remove('ob-start');
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.style.pointerEvents = '';
+      setTimeout(() => {
+        sidebar.style.transition = 'opacity .5s ease';
+        sidebar.style.opacity    = '1';
+        setTimeout(() => {
+          sidebar.style.transition = '';
+          sidebar.style.opacity    = '';
+        }, 560);
+      }, 300);
+    }
+    // Map overlays fade in
+    ['venue-filters', 'about-btn', 'map-key'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.pointerEvents = '';
+      setTimeout(() => {
+        el.style.transition = 'opacity .5s ease';
+        el.style.opacity    = '1';
+        setTimeout(() => { el.style.transition = ''; el.style.opacity = ''; }, 560);
+      }, 500 + i * 80);
+    });
+    // Cascade: tabs → list header → list items (pure JS transitions — no CSS animation-delay flicker)
+    setTimeout(() => {
+      const modesEl  = document.getElementById('modes');
+      const headerEl = document.getElementById('list-header');
+      function revealEl(el, delayMs) {
+        if (!el) return;
+        el.style.transform  = 'translateX(-8px)';
+        el.style.transition = 'none';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          setTimeout(() => {
+            el.style.transition = 'opacity 0.45s cubic-bezier(0.22,1,0.36,1), transform 0.45s cubic-bezier(0.22,1,0.36,1)';
+            el.style.opacity    = '1';
+            el.style.transform  = '';
+          }, delayMs);
+        }));
+      }
+      revealEl(modesEl,  0);
+      revealEl(headerEl, 150);
+      // List items: snap to hidden then cascade in
+      setTimeout(() => {
+        const items = [...document.querySelectorAll('#list .list-item')];
+        items.forEach(el => {
+          el.style.transition = 'none';
+          el.style.opacity    = '0';
+          el.style.transform  = 'translateX(-8px)';
+        });
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          items.forEach((el, i) => {
+            setTimeout(() => {
+              el.style.transition = 'opacity 0.4s cubic-bezier(0.22,1,0.36,1), transform 0.4s cubic-bezier(0.22,1,0.36,1)';
+              el.style.opacity    = '1';
+              el.style.transform  = '';
+            }, i * 50);
+          });
+          // After cascade, unfreeze updates and resize map once
+          const cascadeDuration = items.length * 50 + 450; // last item + fade duration
+          setTimeout(() => {
+            _obTransitioning = false;
+            if (map) map.invalidateSize();
+          }, cascadeDuration);
+        }));
+      }, 200);
+    }, 950); // 300ms sidebar-start + 500ms fade + 150ms buffer
+  }
+
+  function _obInit() {
+    // Hide map UI overlays + sidebar
+    ['headline-stat', 'venue-filters', 'about-btn', 'map-key'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+    });
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) { sidebar.style.opacity = '0'; sidebar.style.pointerEvents = 'none'; }
+    // Pre-hide cascade targets so they don't flash during sidebar fade-in
+    ['modes', 'list-header'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.opacity = '0'; el.style.transition = 'none'; }
+    });
+
+    // Show the onboarding panel
+    const ob = document.getElementById('ob-container');
+    if (ob) ob.style.display = 'flex';
+
+    _obBuildPips();
+    _obShow(0);
+
+    const nextBtn = document.getElementById('ob-next');
+    const skipBtn = document.getElementById('ob-skip');
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+      if (_obBeat < _obBeats().length - 1) _obTransition(_obBeat + 1);
+      else _obFinish();
+    });
+    if (skipBtn) skipBtn.addEventListener('click', _obFinish);
+  }
+
+</script>
+
+<!-- About modal -->
+<div id="about-overlay" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+  <div id="about-modal">
+    <button id="about-close" aria-label="Close">×</button>
+
+    <div class="about-title" id="about-modal-title">
+      Berlin Trust Index<br><span class="at-de">Berlin Vertrauensindex</span>
+    </div>
+
+    <p class="about-lede">In April 2026, Google began disclosing something unusual on German business listings: how many customer reviews had been removed following defamation complaints. This map collects those disclosures across Berlin — restaurants, bars, cafés, hotels, gyms, hair salons, clubs, and more.</p>
+
+    <details>
+      <summary>How it works</summary>
+      <div class="about-section-body">
+        <p class="about-body">Germany's anti-hate-speech law (NetzDG) requires platforms to act on reported content within 24 hours — or face fines up to €50 million. Legal service firms have found a way in. For as little as €49, they file a defamation complaint against a customer review on a business's behalf. Google processes it. The reviewer often doesn't know it happened. The business gets a cleaner rating.</p>
+        <p class="about-body">The complaint is anonymous. It's signed "gez. Rechtsanwalt" — signed, a lawyer. No name. No firm. You can find the removal in your comment history. You can't find out who put it there.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What this data does and doesn't show</summary>
+      <div class="about-section-body">
+        <p class="about-body">This map surfaces Google's own disclosures — nothing private was accessed. A high removal count means defamation complaints were filed and Google processed them. It does not mean the business acted wrongfully.</p>
+        <p class="about-body">Many venues on this map are places we genuinely love. The problem isn't them — it's a legal system that makes removal cheap, fast, and anonymous.</p>
+        <p class="about-body">The caveat cuts both ways: a business may have been the victim of a coordinated negative review campaign and legitimately sought help. The data shows volume only.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>The numbers</summary>
+      <div class="about-section-body">
+        <p class="about-body" id="about-numbers-text">3,678 Berlin venues checked so far. 672 with recorded removals. At least 27,327 reviews removed — likely more, since Google stops disclosing above 250 per venue.</p>
+        <p class="about-body">Google only counts removals processed <strong>in the last 365 days</strong>, and only those made <strong>due to defamation complaints</strong> that were not subsequently reversed on appeal. The totals shown here are therefore a lower bound — they exclude older removals and any that were appealed.</p>
+        <p class="about-body">Google discloses in bands rather than exact counts. Ranges: 1, 2–5, 6–10, 11–20, 21–50, 51–100, 101–150, 151–200, 201–250, and "over 250." The <strong>citywide total</strong> sums the lower bound of each band — it is the minimum number of removals that Google's disclosures confirm, making it a conservative floor. <strong>Individual venue figures</strong> show the upper bound of their band (e.g. "up to 100 removed") as the closest single-number estimate, since the true count sits somewhere within the range and the upper end is the worst-case. Venues at "over 250" are treated as exactly 250 in all calculations, so their contribution to any total is also a minimum.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>About</summary>
+      <div class="about-section-body">
+        <p class="about-body">Independent investigation. No advertisers, no sponsors.</p>
+        <p class="about-body">Scraping approach informed by <a href="https://github.com/mb4umi/maps-deleted-reviews" target="_blank">mb4umi/maps-deleted-reviews</a>.</p>
+      </div>
+    </details>
+
+    <div class="about-footer">
+      <a href="https://berlintracker.github.io/berlin.defamation.tracker/methodology.md" target="_blank">How we collected this data →</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/berlintracker/berlin.defamation.tracker" target="_blank">GitHub</a>
+      &nbsp;·&nbsp;
+      <a id="contact-link" href="#">Get In Touch</a>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var u='berlin.tracker',d='proton.me';
+  var a=document.getElementById('contact-link');
+  if(a){a.href='mai'+'lto:'+u+'@'+d;}
+})();
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+  applyLang(currentLang);
+  initMap();
+
+  // ── Venue search ─────────────────────────────────────────────────────────
+  const CHECKED_URL = 'https://berlintracker.github.io/berlin.defamation.tracker/checked.json';
+
+  (function () {
+    const input    = document.getElementById('venue-search-input');
+    const dropdown = document.getElementById('venue-search-dropdown');
+    if (!input || !dropdown) return;
+
+    let focusedIdx  = -1;
+    let checkedData = null;  // lazy-loaded zero-removal venues
+    let checkedLoading = false;
+
+    // Lazy-load checked.json on first search focus — not on page load.
+    // It's ~1.5MB uncompressed (~300KB gzipped), so we defer it until needed.
+    // Once loaded, we strip out any venues already in allData (hits) to avoid duplicates —
+    // a venue can't be both "has removals" and "no removals" in the same search results.
+    function ensureChecked() {
+      if (checkedData !== null || checkedLoading) return;
+      checkedLoading = true;
+      fetch(CHECKED_URL)
+        .then(r => r.json())
+        .then(data => {
+          const hitIds = new Set(allData.map(p => p.id));
+          checkedData = data.filter(p => !hitIds.has(p.place_id));
+        })
+        .catch(() => { checkedData = []; }) // fail silently — search still works with hits only
+        .finally(() => { checkedLoading = false; });
+    }
+
+    function removedDisplay(p) {
+      if (p._isFloor) return (p.removed_min || 251) + '+';
+      if (p.removed_min && p.removed_max && p.removed_min !== p.removed_max)
+        return p.removed_min + '–' + p.removed_max;
+      return String(p.removed_min || p._removed || '');
+    }
+
+    function openDropdown(hits, cleans) {
+      focusedIdx = -1;
+      dropdown.innerHTML = '';
+      const total = hits.length + cleans.length;
+
+      if (!total) {
+        let msg = currentLang === 'de' ? 'Kein Betrieb gefunden' : 'No matching venues';
+        if (checkedData && checkedData.length) {
+          msg += currentLang === 'de'
+            ? ' — noch nicht in unseren Daten'
+            : ' — may not be in our dataset yet';
+        }
+        dropdown.innerHTML = `<div class="vsd-empty">${msg}</div>`;
+      } else {
+        hits.forEach((p, i) => {
+          const el = document.createElement('div');
+          el.className = 'vsd-item';
+          el.setAttribute('role', 'option');
+          el.dataset.idx = i;
+          const rm = removedDisplay(p);
+          const cat = p.category ? categoryLabel(p.category, currentLang) : '';
+          const rmLabel = rm ? ' · ' + rm + (currentLang === 'de' ? ' entfernt' : ' removed') : '';
+          el.innerHTML =
+            `<span class="vsd-name">${esc(p.name)}</span>`
+            + `<span class="vsd-meta">${esc(p.area || '')}${cat ? ' · ' + esc(cat) : ''}${rmLabel}</span>`;
+          el.addEventListener('mousedown', (e) => { e.preventDefault(); selectResult(p); });
+          dropdown.appendChild(el);
+        });
+
+        cleans.forEach((p, i) => {
+          const el = document.createElement('div');
+          el.className = 'vsd-item vsd-clean';
+          el.setAttribute('role', 'option');
+          el.dataset.idx = hits.length + i;
+          const badge = currentLang === 'de' ? 'keine Entfernungen' : 'no removals';
+          const typeLabel = p.venue_type ? categoryLabel(p.venue_type, currentLang) : '';
+          const starLabel = p.star_rating ? ` · ${p.star_rating}★` : '';
+          el.innerHTML =
+            `<span class="vsd-name">${esc(p.name)}<span class="vsd-clean-badge">${badge}</span></span>`
+            + `<span class="vsd-meta">${esc(p.area || '')}${typeLabel ? ' · ' + esc(typeLabel) : ''}${starLabel}</span>`;
+          el.addEventListener('mousedown', (e) => { e.preventDefault(); selectClean(p); });
+          dropdown.appendChild(el);
+        });
+
+        if (cleans.length && !hits.length) {
+          const footer = document.createElement('div');
+          footer.className = 'vsd-footer';
+          footer.textContent = currentLang === 'de'
+            ? 'Geprüft — keine NetzDG-Entfernungen gefunden'
+            : 'Checked — no NetzDG removals found';
+          dropdown.appendChild(footer);
+        }
+      }
+      dropdown.classList.add('open');
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      input.setAttribute('aria-expanded', 'false');
+      focusedIdx = -1;
+    }
+
+    function setFocus(idx) {
+      const items = dropdown.querySelectorAll('.vsd-item');
+      items.forEach(el => el.classList.remove('focused'));
+      if (idx >= 0 && idx < items.length) {
+        items[idx].classList.add('focused');
+        items[idx].scrollIntoView({ block: 'nearest' });
+        focusedIdx = idx;
+      }
+    }
+
+    function selectResult(p) {
+      input.value = '';
+      closeDropdown();
+      if (!map || !p.lat || !p.lng) return;
+      map.flyTo([p.lat, p.lng], 17, { animate: true, duration: 0.7 });
+      const entry = markerMap[p.id];
+      if (entry) setTimeout(() => entry.marker.fire('click'), 750);
+    }
+
+    // Zero-removal venue: fly to location, no marker to click
+    function selectClean(p) {
+      input.value = '';
+      closeDropdown();
+      if (!map || !p.lat || !p.lng) return;
+      map.flyTo([p.lat, p.lng], 17, { animate: true, duration: 0.7 });
+    }
+
+    function runSearch(q) {
+      if (!q.trim()) { closeDropdown(); return; }
+      const lower = q.toLowerCase();
+
+      const hits = allData
+        .filter(p => p.name && p.name.toLowerCase().includes(lower) && (p.removed_min || 0) > 0)
+        .sort((a, b) => {
+          const aStart = a.name.toLowerCase().startsWith(lower) ? 0 : 1;
+          const bStart = b.name.toLowerCase().startsWith(lower) ? 0 : 1;
+          return aStart - bStart || a.name.localeCompare(b.name);
+        })
+        .slice(0, 6);
+
+      const cleans = checkedData
+        ? checkedData
+            .filter(p => p.name && p.name.toLowerCase().includes(lower))
+            .sort((a, b) => {
+              const aStart = a.name.toLowerCase().startsWith(lower) ? 0 : 1;
+              const bStart = b.name.toLowerCase().startsWith(lower) ? 0 : 1;
+              return aStart - bStart || a.name.localeCompare(b.name);
+            })
+            .slice(0, Math.max(2, 6 - hits.length)) // fill up to 6 total, always show ≥2 cleans if any
+        : [];
+
+      openDropdown(hits, cleans);
+    }
+
+    input.addEventListener('focus', () => {
+      ensureChecked();
+      if (input.value.trim()) runSearch(input.value);
+    });
+    input.addEventListener('input', () => runSearch(input.value));
+
+    input.addEventListener('keydown', (e) => {
+      const items = dropdown.querySelectorAll('.vsd-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocus(Math.min(focusedIdx + 1, items.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocus(Math.max(focusedIdx - 1, 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (focusedIdx >= 0 && items[focusedIdx]) items[focusedIdx].dispatchEvent(new Event('mousedown'));
+      } else if (e.key === 'Escape') {
+        closeDropdown();
+        input.blur();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#venue-search-wrap')) closeDropdown();
+    });
+  })();
+
+  // ── DEBUG: cycle all story permutations ──────────────────────────────────
+  let _debugIdx = -1;
+  function _debugGetStories() {
+    const v = getViewData() || { hits: allData.filter(p => (p.removed_min||0)>0), visible: allData, totalRemoved: allData.reduce((s,p)=>s+(p.removed_min||0),0), hitRate: 0.2, district: 'Mitte', kiez: 'Mitte' };
+    const stats = STAT_STORIES[currentLang] || STAT_STORIES.en;
+    const eds   = EDITORIAL_STORIES[currentLang] || EDITORIAL_STORIES.en;
+    const list  = [];
+    stats.forEach((s, i) => {
+      list.push({ label: 'STAT[' + i + '] type:' + s.type, html: (() => { try { return s.text(v); } catch(e) { return '<em style="color:red">error: ' + e.message + '</em>'; } })() });
+    });
+    eds.forEach((s, i) => {
+      list.push({ label: 'EDITORIAL[' + i + '] type:' + s.type, html: s.text() });
+    });
+    return list;
+  }
+  function debugCycleNext() {
+    const list = _debugGetStories();
+    _debugIdx = (_debugIdx + 1) % list.length;
+    _debugShow(list);
+  }
+  function debugCyclePrev() {
+    const list = _debugGetStories();
+    _debugIdx = (_debugIdx - 1 + list.length) % list.length;
+    _debugShow(list);
+  }
+  function _debugShow(list) {
+    const item = list[_debugIdx];
+    document.getElementById('debug-label').textContent = item.label + ' (' + (_debugIdx+1) + '/' + list.length + ')';
+    animateStatCard(item.html);
+  }
+
+  // ── Open venue info popup programmatically ───────────────────────────────
+  function openVenueInfo(pid) {
+    const entry = markerMap[pid];
+    if (!entry) return;
+    const p = entry.place;
+    if (activeInfoWindow) activeInfoWindow.remove();
+    const showPopup = () => {
+      activeInfoWindow = L.popup({ className: 'bti-popup', maxWidth: 320, closeButton: true })
+        .setLatLng([p.lat, p.lng])
+        .setContent(buildPopupHTML(p))
+        .openOn(map);
+    };
+    if (clusterer) {
+      clusterer.zoomToShowLayer(entry.marker, showPopup);
+    } else {
+      map.flyTo([p.lat, p.lng], 17, { animate: true });
+      setTimeout(showPopup, 600);
+    }
+  }
+
+  // Delegated click handler for venue links in the stat card
+  document.getElementById('hs-fact-text').addEventListener('click', e => {
+    const link = e.target.closest('.fact-venue-link[data-pid]');
+    if (!link) return;
+    e.preventDefault();
+    openVenueInfo(link.dataset.pid);
+  });
+
+  // ── Hash navigation: #@lat,lng,zoom pans the map to a venue ──────────────
+  function handleMapHash() {
+    const m = location.hash.match(/^#@(-?\d+\.\d+),(-?\d+\.\d+),(\d+)/);
+    if (m && map) {
+      map.setView([parseFloat(m[1]), parseFloat(m[2])], parseInt(m[3]), { animate: true });
+    }
+  }
+  window.addEventListener('hashchange', handleMapHash);
+  handleMapHash();
+</script>
+</body>
+</html>

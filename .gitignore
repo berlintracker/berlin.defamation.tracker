@@ -1,0 +1,15 @@
+# Whitelist — only explicitly allowed files are tracked. Everything else is ignored.
+*
+
+# Public front-end
+!index.html
+!results.json
+!meta.json
+!checked.json
+
+# Docs
+!README.md
+!methodology.md
+
+# This file
+!.gitignore
