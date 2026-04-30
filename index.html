@@ -2108,28 +2108,6 @@
       aboutOverlay.classList.remove('open');
     });
 
-    // Animate about modal accordions
-
-          body.addEventListener('transitionend', () => {
-            details.removeAttribute('open');
-            body.style.height = '';
-          }, { once: true });
-        } else {
-          // Opening: set open, measure, animate from 0
-          details.setAttribute('open', '');
-          const h = body.scrollHeight;
-          body.style.height = '0px';
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              body.style.height = h + 'px';
-            });
-          });
-          body.addEventListener('transitionend', () => {
-            body.style.height = '';
-          }, { once: true });
-        }
-      });
-    });
     aboutOverlay.addEventListener('click', e => {
       if (e.target === aboutOverlay) aboutOverlay.classList.remove('open');
     });
