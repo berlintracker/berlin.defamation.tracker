@@ -7,13 +7,13 @@
   <meta name="description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
   <meta property="og:title" content="Berlin Trust Index">
   <meta property="og:description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
-  <meta property="og:image" content="https://berlintracker.github.io/berlin.defamation.tracker/og.png">
-  <meta property="og:url" content="https://berlintracker.github.io/berlin.defamation.tracker/">
+  <meta property="og:image" content="https://berlintrustindex.com/og.png">
+  <meta property="og:url" content="https://berlintrustindex.com/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Berlin Trust Index">
   <meta name="twitter:description" content="Which Berlin venues have had the most Google reviews removed following defamation complaints? An interactive map of 1,200+ confirmed cases.">
-  <meta name="twitter:image" content="https://berlintracker.github.io/berlin.defamation.tracker/og.png">
+  <meta name="twitter:image" content="https://berlintrustindex.com/og.png">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2187,6 +2187,8 @@
         // total_reviews = visible reviews after removals (Google excludes removed from its count).
         const r = p._isFloor ? p.removed_min : (p.removed_max || p.removed_min);
         rate = Math.round((r / (p.total_reviews + r)) * 1000) / 10;
+        // When removed > visible, "1 in N" loses meaning — switch to "X removed per visible rating"
+        p._perVisible = r > p.total_reviews ? parseFloat((r / p.total_reviews).toFixed(1)) : null;
       } else if (p.removal_rate != null) {
         rate = Math.round(p.removal_rate * 1000) / 10;
       }
@@ -2366,12 +2368,12 @@
           ? (p._isFloor ? "≥" : "~") + p._rate + "% " + S.rmRate.toLowerCase()
           : S.rateUnk;
         subStat    = p._rate != null
-          ? ratePhrase(p._rate, p._isFloor, S)
+          ? ratePhrase(p._rate, p._isFloor, S, p._perVisible)
           : "";
       } else if (currentMode === "rate") {
         countNum   = (p._isFloor ? "≥" : "~") + p._rate + "%";
         countLabel = S.rate;
-        mainStat   = ratePhrase(p._rate, p._isFloor, S);
+        mainStat   = ratePhrase(p._rate, p._isFloor, S, p._perVisible);
         subStat    = rmDisp + " " + S.removedOf((p.total_reviews || "?").toLocaleString());
       } else if (currentMode === "impact") {
         const adj  = Math.round((p.star_rating - p._ratingDelta) * 10) / 10;
@@ -2446,7 +2448,7 @@
     const headline = rate != null
       ? (rate >= 100
           ? rmDisp + " " + S.removed
-          : ratePhrase(rate, p._isFloor, S) + " " + S.removed)
+          : ratePhrase(rate, p._isFloor, S, p._perVisible) + " " + S.removed)
       : rmDisp + " " + S.removed;
 
     const rateStr = rate != null
@@ -2580,13 +2582,12 @@
     return _sessionTypeCounts[type];
   }
 
-  // "1 in N reviews" phrase — for extreme rates (removed ≥ visible), "[y] removed per visible rating"
-  function ratePhrase(rate, isFloor, S) {
-    const n = Math.round(100 / rate);
-    if (n <= 1) {
-      const y = parseFloat((rate / 100).toFixed(1));
-      return (isFloor ? S.atLeast : '') + S.perVisible(y);
+  // "1 in N reviews" phrase — when removed > visible, switches to "[y] removed per visible rating"
+  function ratePhrase(rate, isFloor, S, perVisible) {
+    if (perVisible != null) {
+      return (isFloor ? S.atLeast : '') + S.perVisible(perVisible);
     }
+    const n = Math.round(100 / rate);
     return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n) + ' ' + S.removed;
   }
 
@@ -3737,7 +3738,7 @@
     </details>
 
     <div class="about-footer">
-      <a href="https://berlintracker.github.io/berlin.defamation.tracker/methodology.md" target="_blank">How we collected this data →</a>
+      <a href="https://berlintrustindex.com/methodology.md" target="_blank">How we collected this data →</a>
       &nbsp;·&nbsp;
       <a href="https://github.com/berlintracker/berlin.defamation.tracker" target="_blank">GitHub</a>
       &nbsp;·&nbsp;
