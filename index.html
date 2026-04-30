@@ -2137,6 +2137,7 @@
     allData.forEach(p => {
       // _isFloor: Google caps disclosure at 250 — removed_max is null for "Über 250" cases.
       // We never know the true count; _removed is the best available number (lower bound).
+      p.id = p.id || p.place_id;   // results.json exports as place_id; normalise to id
       p._isFloor = p.removed_max === null;
       p._removed = p.removed_median || p.removed_min || 0;
       // Floor cases (250+) must always be tier 4 (extreme) — getTier(250) would wrongly return tier 3
