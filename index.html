@@ -2581,7 +2581,7 @@
       const y = parseFloat((rate / 100).toFixed(1));
       return (isFloor ? S.atLeast : '') + S.perVisible(y);
     }
-    return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n);
+    return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n) + ' ' + S.removed;
   }
 
   // HTML-escape helper — venues/districts come from scraped data
