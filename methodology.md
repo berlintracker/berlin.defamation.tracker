@@ -33,11 +33,19 @@ We systematically collected this disclosure data across venues in central Berlin
 
 **German locale.** Google Maps served in German (due to Berlin IP geolocation) throughout. All parsing of removal text, tab labels, and review counts was implemented for German-language output.
 
-## Removal rate calculation
+## How we calculate
 
-Removal rate = removed_min ÷ total_reviews
+**What "total reviews" means.** Google's displayed review count reflects only reviews that are currently visible — reviews removed following a defamation complaint are excluded from that count. This is confirmed by Google's own help documentation: a removed review disappears from the listing and the count decreases accordingly. See: [Add, edit, or delete Google Maps reviews](https://support.google.com/maps/answer/6230175) and [Defamation Removal Notices in Germany](https://support.google.com/contributionpolicy/answer/16997273).
 
-Where removed_min is the lower bound of the disclosed range (e.g. 51 for "51–100"). For venues at the 250+ ceiling, removed_min = 250 and the true figure is unknown — rates for these venues are floors only and are marked as minimums.
+In practice this means: if a venue shows 196 reviews and a banner saying 101–150 were removed, there were originally 297–346 reviews ever submitted, and 196 remain visible today.
+
+**Removal rate.** Removal rate = removed_min ÷ visible_reviews
+
+Where removed_min is the lower bound of the disclosed range (e.g. 101 for "101–150"), and visible_reviews is Google's current displayed count. Using removed_min gives a conservative lower bound — the true rate is somewhere between removed_min/visible and removed_max/visible.
+
+For venues at the 250+ ceiling, removed_min = 250 and the true figure is unknown — rates for these venues are marked as minimums.
+
+**"N removed per visible rating."** For venues where removed_min exceeds the visible count (i.e. more reviews have been removed than currently exist), we express the rate as: removed_min ÷ visible, rounded to one decimal place. This phrasing — e.g. "1.5 removed per visible rating" — conveys that the shadow of removed reviews is larger than what a reader can actually see.
 
 Note: thresholds for indicators, leaderboard rankings, and rate-based comparisons are provisional. We are gathering data first and will determine appropriate cutoffs once the full dataset distribution is understood.
 

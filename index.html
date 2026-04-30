@@ -1622,9 +1622,10 @@
       upTo:        'up to ',
       oneInN:      n => '1 in ' + n + ' reviews',
       mostReviews: 'the majority of reviews',
+      perVisible:  y => y + ' removed per visible rating',
       removed:     'removed',
       rate:        'rate',
-      removedOf:   n => 'removed of ' + n,
+      removedOf:   n => 'removed, ' + n + ' remaining',
       upToDiff:    d => 'Up to ' + d + '★ difference',
       ifRemoved:   'if removed reviews averaged 1★',
       footnoteImpact: 'Rating Gap assumes removed reviews averaged 1★. Worst-case estimate only.',
@@ -1670,9 +1671,10 @@
       upTo:        'bis zu ',
       oneInN:      n => '1 von ' + n + ' Bewertungen',
       mostReviews: 'die meisten Bewertungen',
+      perVisible:  y => y + ' pro sichtbarer Bewertung entfernt',
       removed:     'entfernt',
       rate:        'Rate',
-      removedOf:   n => 'von ' + n + ' entfernt',
+      removedOf:   n => 'entfernt, ' + n + ' verbleibend',
       upToDiff:    d => 'Bis zu ' + d + '★ Unterschied',
       ifRemoved:   'wenn entfernte Bewertungen im Schnitt 1★ hatten',
       footnoteImpact: 'Bewertungslücke geht davon aus, dass entfernte Bewertungen im Schnitt 1★ hatten. Nur Schätzung.',
@@ -1752,8 +1754,13 @@
     const freshEl = document.getElementById('hs-freshness');
     if (freshEl && meta) {
       const d = new Date();
-      const mo = d.toLocaleString('en', { month: 'long' });
-      freshEl.textContent = `Data current as of ${mo} ${d.getFullYear()}.`;
+      if (currentLang === 'de') {
+        const mo = d.toLocaleString('de', { month: 'long' });
+        freshEl.textContent = `Daten aktuell per ${mo} ${d.getFullYear()}.`;
+      } else {
+        const mo = d.toLocaleString('en', { month: 'long' });
+        freshEl.textContent = `Data current as of ${mo} ${d.getFullYear()}.`;
+      }
     }
     // Update about-modal numbers paragraph with live meta
     const abt = document.getElementById('about-numbers-text');
@@ -2164,8 +2171,10 @@
       p._removedSort = p._isFloor ? p._removed + 0.5 : p._removed;
 
       let rate = null;
-      if (p.total_reviews && p._removed) {
-        rate = Math.round((p._removed / p.total_reviews) * 1000) / 10;
+      if (p.total_reviews && p.removed_min) {
+        // Use removed_min — conservative lower bound, consistent with all other displays.
+        // total_reviews = visible reviews after removals (Google excludes removed from its count).
+        rate = Math.round((p.removed_min / p.total_reviews) * 1000) / 10;
       } else if (p.removal_rate != null) {
         rate = Math.round(p.removal_rate * 1000) / 10;
       }
@@ -2344,15 +2353,13 @@
         mainStat   = p._rate != null
           ? (p._isFloor ? "≥" : "~") + p._rate + "% " + S.rmRate.toLowerCase()
           : S.rateUnk;
-        subStat    = p._rate != null && p._rate < 100
+        subStat    = p._rate != null
           ? ratePhrase(p._rate, p._isFloor, S)
           : "";
       } else if (currentMode === "rate") {
         countNum   = (p._isFloor ? "≥" : "~") + p._rate + "%";
         countLabel = S.rate;
-        mainStat   = p._rate < 100
-          ? ratePhrase(p._rate, p._isFloor, S)
-          : rmDisp + " " + S.removed;
+        mainStat   = ratePhrase(p._rate, p._isFloor, S);
         subStat    = rmDisp + " " + S.removedOf((p.total_reviews || "?").toLocaleString());
       } else if (currentMode === "impact") {
         const adj  = Math.round((p.star_rating - p._ratingDelta) * 10) / 10;
@@ -2561,10 +2568,13 @@
     return _sessionTypeCounts[type];
   }
 
-  // "1 in N reviews" phrase — falls back to "the majority of reviews" when N would be 1
+  // "1 in N reviews" phrase — for extreme rates (removed ≥ visible), "[y] removed per visible rating"
   function ratePhrase(rate, isFloor, S) {
     const n = Math.round(100 / rate);
-    if (n <= 1) return (isFloor ? S.atLeast : '') + S.mostReviews;
+    if (n <= 1) {
+      const y = parseFloat((rate / 100).toFixed(1));
+      return (isFloor ? S.atLeast : '') + S.perVisible(y);
+    }
     return (isFloor ? S.atLeast : S.upTo) + S.oneInN(n);
   }
 
@@ -2739,7 +2749,7 @@
       },
       {
         // venue_type_targeting: 80%+ of removal volume from one venue type
-        type: 'venue_type_targeting',
+        type: 'venue_type_targeting', sessionMax: 1,
         condition: (v) => {
           if (v.hits.length < 4 || v.totalRemoved === 0) return false;
           const byType = {};
@@ -2944,7 +2954,7 @@
       },
       {
         // venue_type_targeting: 80%+ of removal volume from one venue type
-        type: 'venue_type_targeting',
+        type: 'venue_type_targeting', sessionMax: 1,
         condition: (v) => {
           if (v.hits.length < 4 || v.totalRemoved === 0) return false;
           const byType = {};
@@ -3038,7 +3048,7 @@
       },
       {
         type: 'appeals', weight: 2,
-        text: () => `<span class="fact-title">The same law that caused this also exposed it.</span>`
+        text: () => `<span class="fact-title">The law that caused this also exposed it.</span>`
                   + `<span class="fact-body">NetzDG made review removal possible. Then it forced Google to disclose it. <span class="fact-strong">Outside Germany, neither exists.</span></span>`,
       },
     ],
@@ -3450,8 +3460,8 @@
         cWrap.style.display = '';
         const lbl = document.getElementById('ob-numlabel-el');
         if (lbl) lbl.innerHTML = currentLang === 'de'
-          ? 'Bewertungen wegen Verleumdungsbeschwerden entfernt<br>— in Berlin, im letzten Jahr'
-          : 'Google reviews removed in Berlin<br>due to defamation complaints — in the last year';
+          ? 'Bewertungen wegen Verleumdungsbeschwerden entfernt<br>— in Berlin, <strong>im letzten Jahr</strong>'
+          : 'Google reviews removed in Berlin<br>due to defamation complaints — <strong>in the last year</strong>';
         _obAnimCounter();
       } else {
         cWrap.style.display = 'none';
