@@ -3126,7 +3126,7 @@
   const OB_BEATS_DE = [
     {
       kicker: '',
-      head: 'Deutschlands Hassrede-Gesetz erlaubt es jedem, eine Google-Bewertung für 49 € zu melden.',
+      head: 'Deutschlands Hassrede-Gesetz erlaubt es jedem, eine Google-Bewertung für <strong>49 €</strong> melden zu lassen.',
       note: 'Die Plattform hat 24 Stunden, um sie zu entfernen.',
       dim: .82, markers: false, counter: false,
     },
@@ -3139,8 +3139,8 @@
   const OB_BEATS = [
     {
       kicker: '',
-      head: "Germany's hate-speech law lets anyone<br>flag a Google review for €49.",
-      note: 'The platform has 24 hours to remove it.',
+      head: "Germany's hate-speech law lets anyone pay <strong>€49</strong> to have a Google review flagged.",
+      note: 'The platform has <strong>24 hours</strong> to remove it.',
       dim: .82, markers: false, counter: false,
     },
     {
@@ -3250,8 +3250,8 @@
         cWrap.style.display = '';
         const lbl = document.getElementById('ob-numlabel-el');
         if (lbl) lbl.innerHTML = currentLang === 'de'
-          ? 'Bewertungen aus Berliner Betrieben im letzten Jahr entfernt<span class="ob-counter-footer">Daten von Google offengelegt.</span>'
-          : 'reviews removed from Berlin venues in the last year<span class="ob-counter-footer">Data disclosed by Google.</span>';
+          ? 'Google-Bewertungen aus Berliner Betrieben im letzten Jahr entfernt<span class="ob-counter-footer">Daten von Google offengelegt.</span>'
+          : 'Google reviews removed from Berlin venues in the last year<span class="ob-counter-footer">Data disclosed by Google.</span>';
         _obAnimCounter();
       } else {
         cWrap.style.display = 'none';
