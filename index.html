@@ -1622,7 +1622,7 @@
       upTo:        'up to ',
       oneInN:      n => '1 in ' + n + ' reviews',
       mostReviews: 'the majority of reviews',
-      perVisible:  y => '1 in ' + (1 + y).toFixed(1) + ' reviews still showing',
+      perVisible:  () => 'More reviews removed than remain.',
       removed:     'removed',
       rate:        'rate',
       removedOf:   n => 'removed, ' + n + ' remaining',
@@ -1672,7 +1672,7 @@
       upTo:        'bis zu ',
       oneInN:      n => '1 von ' + n + ' Bewertungen',
       mostReviews: 'die meisten Bewertungen',
-      perVisible:  y => '1 von ' + (1 + y).toFixed(1) + ' Bewertungen noch sichtbar',
+      perVisible:  () => 'Mehr entfernt als noch sichtbar.',
       removed:     'entfernt',
       rate:        'Rate',
       removedOf:   n => 'entfernt, ' + n + ' verbleibend',
@@ -1737,9 +1737,9 @@
     const ctMax = document.getElementById('hs-citywide-max');
     if (ctMin && ctMin.textContent && window._totalRemovedMin != null) {
       const loc = lang === 'de' ? 'de' : 'en';
-      ctMin.textContent = window._totalRemovedMin.toLocaleString(loc) + '+ ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
+      ctMin.textContent = '~' + window._totalRemovedMin.toLocaleString(loc) + ' ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
       if (ctMax && window._totalRemovedMax != null)
-        ctMax.textContent = (lang === 'de' ? 'möglicherweise bis zu ' : 'could be as many as ') + window._totalRemovedMax.toLocaleString(loc) + '+';
+        ctMax.textContent = (lang === 'de' ? 'bestätigte Spanne: ' : 'confirmed range: ') + (window._totalRemovedMin || 0).toLocaleString(loc) + '–' + window._totalRemovedMax.toLocaleString(loc) + '+';
     }
     document.querySelectorAll('.key-sev-name').forEach((el, i) => { el.textContent = S.sevLabels[i]; });
     document.querySelectorAll('.key-sev-range').forEach((el, i) => { el.textContent = S.sevRanges[i]; });
@@ -1766,8 +1766,8 @@
     // Update about-modal numbers paragraph with live meta
     const abt = document.getElementById('about-numbers-text');
     if (abt && meta) {
-      const checked = (meta.total_places_checked || 0).toLocaleString('en');
-      const hits    = (meta.total_hits || 0).toLocaleString('en');
+      const checked = (meta.total_checked || 0).toLocaleString('en');
+      const hits    = (meta.hit_count || 0).toLocaleString('en');
       const removed = (meta.total_removed_median || meta.total_removed_min || 0).toLocaleString('en');
       abt.innerHTML = `${checked} Berlin venues checked so far. ${hits} with recorded removals. `
         + `At least ${removed} reviews removed — likely more, since Google stops disclosing above 250 per venue.`;
@@ -2186,7 +2186,7 @@
     // Headline stat — set city baseline for reactive card
     const totalRemoved = allData.reduce((s, p) => s + (p._removed || 0), 0);
     _cityTotalRemoved  = totalRemoved;
-    _cityHitRate       = meta.total_places_checked > 0 ? allData.length / meta.total_places_checked : 0;
+    _cityHitRate       = meta.total_checked > 0 ? allData.length / meta.total_checked : 0;
     window._areaStats  = meta.area_stats || {};
 
     // MSS citywide stats — precompute once for stat card atoms
@@ -2226,13 +2226,13 @@
     const ctMax = document.getElementById('hs-citywide-max');
     const ctWrap = document.getElementById('hs-citywide-total');
     if (ctMin && ctMax && ctWrap) {
-      ctMin.textContent = totalRemoved.toLocaleString(locale) + '+ ' + (currentLang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
-      ctMax.textContent = (currentLang === 'de' ? 'möglicherweise bis zu ' : 'could be as many as ') + totalRemovedMax.toLocaleString(locale) + '+';
+      ctMin.textContent = '~' + totalRemoved.toLocaleString(locale) + ' ' + (currentLang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
+      ctMax.textContent = (currentLang === 'de' ? 'bestätigte Spanne: ' : 'confirmed range: ') + window._totalRemovedMin.toLocaleString(locale) + '–' + totalRemovedMax.toLocaleString(locale) + '+';
       ctWrap.style.display = 'block';
     }
 
     // Set opening factoid ONCE — citywide overview (never repeats as a condition)
-    const _openTotal   = meta.total_places_checked || allData.length;
+    const _openTotal   = meta.total_checked || allData.length;
     window._storedMetaTotal = _openTotal; // saved for resetHome()
     const _openHits    = allData.length;
     const _openPct     = Math.round((_openHits / _openTotal) * 100);
