@@ -22,7 +22,7 @@ Live counts (venues checked, hits, total removals) are published in `meta.json` 
 
 **Removal rate.** removed ÷ (visible + removed) — the proportion of all reviews ever submitted that were removed. The denominator is the estimated total ever submitted.
 
-**Which figure we display.** Citywide totals use the lower bound of each band. Per-venue figures show the band itself ("101–150 removed"). Where a single number is required for sorting or threshold logic, we use the median of the band.
+**Which figure we display.** Citywide totals, per-venue figures, and all sorting or threshold logic use the median of each band. Per-venue displays show the band itself ("101–150 removed"). Medians are conservative for floor venues (250+), where we use 251.
 
 **Floor venues (250+).** Google caps disclosed counts at "over 250" without an exact figure. For these venues we treat removed_min = 250. All derived figures involving floor venues are minimums; the true counts may be substantially higher.
 
