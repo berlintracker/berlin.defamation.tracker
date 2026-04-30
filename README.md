@@ -1,6 +1,6 @@
 # Berlin Trust Index
 
-**Live map → [berlintracker.github.io/berlin.defamation.tracker](https://berlintracker.github.io/berlin.defamation.tracker/)**
+**Live map → [berlintrustindex.com](https://berlintrustindex.com/)**
 
 ---
 
