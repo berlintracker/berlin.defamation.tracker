@@ -1850,7 +1850,12 @@
     if (l.includes('fitness') || l.includes('gym') || l.includes('crossfit') || l.includes('pilates') || l.includes('yoga')) return 'Gyms & Studios';
     if (l.includes('kampfsport') || l.includes('boxclub') || l.includes('sportschule')) return 'Martial Arts';
     if (l.includes('museum') || l.includes('galerie') || l.includes('kunsthalle')) return 'Museums & Galleries';
-    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub')) return 'Clubs';
+    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub') || l.includes('musikclub')) return 'Clubs';
+    if (l.includes('konzertsaal') || l.includes('konzerthaus') || l.includes('veranstaltungsort für livemusik')) return 'Music Venues';
+    if (l.includes('veranstaltungsstätte') || l.includes('veranstaltungsort')) return 'Event Spaces';
+    if (l.includes('theater') || l.includes('theatre')) return 'Theatres';
+    if (l.includes('kino')) return 'Cinemas';
+    if (l.includes('spielhalle') || l.includes('spielcasino')) return 'Gaming';
     return 'Venues';
   }
 

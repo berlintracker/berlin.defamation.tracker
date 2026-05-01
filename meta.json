@@ -1,7 +1,7 @@
 {
-  "last_updated": "2026-05-01T10:10:43.232865+00:00",
+  "last_updated": "2026-05-01T10:18:12.842346+00:00",
   "total_places_queued": 16541,
-  "total_checked": 14483,
+  "total_checked": 14503,
   "hit_count": 1487,
   "total_removed_min": 47412,
   "total_removed_median": 62355,
@@ -260,7 +260,7 @@
       "hits": 0
     },
     "Schöneberg": {
-      "checked": 971,
+      "checked": 981,
       "hits": 112
     },
     "Siemensstadt": {
@@ -284,7 +284,7 @@
       "hits": 12
     },
     "Tempelhof": {
-      "checked": 287,
+      "checked": 297,
       "hits": 17
     },
     "Tiergarten": {
