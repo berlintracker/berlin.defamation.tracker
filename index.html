@@ -1836,7 +1836,9 @@
 
     // Venue type fallbacks
     if (l.includes('restaurant'))              return 'Restaurants';
-    if (l.includes('bar') || l.includes('lounge') || l.includes('kneipe')) return 'Bars';
+    if (l.includes('steakhaus') || l.includes('steakhouse') || l.includes('grillhaus')) return 'Restaurants';
+    if (l.includes('bistro') || l.includes('brasserie') || l.includes('diner')) return 'Restaurants';
+    if (l.includes('bar') || l.includes('lounge') || l.includes('kneipe') || l.includes('weinstube')) return 'Bars';
     if (l.includes('café') || l.includes('cafe') || l.includes('kaffee')) return 'Cafés';
     if (l.includes('bäckerei') || l.includes('backerei'))  return 'Bakeries';
     if (l.includes('konditorei'))              return 'Patisseries';
@@ -1848,14 +1850,14 @@
     if (l.includes('brauerei'))                return 'Breweries';
     if (l.includes('hotel'))                   return 'Hotels';
     if (l.includes('fitness') || l.includes('gym') || l.includes('crossfit') || l.includes('pilates') || l.includes('yoga')) return 'Gyms & Studios';
-    if (l.includes('kampfsport') || l.includes('boxclub') || l.includes('sportschule')) return 'Martial Arts';
+    if (l.includes('kampfsport') || l.includes('boxclub') || l.includes('sportschule') || l.includes('kletterhalle') || l.includes('tanzschule')) return 'Martial Arts';
     if (l.includes('museum') || l.includes('galerie') || l.includes('kunsthalle')) return 'Museums & Galleries';
-    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub') || l.includes('musikclub')) return 'Clubs';
+    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub') || l.includes('musikclub') || l.includes('stripklub') || l.includes('strip club')) return 'Clubs';
     if (l.includes('konzertsaal') || l.includes('konzerthaus') || l.includes('veranstaltungsort für livemusik')) return 'Music Venues';
     if (l.includes('veranstaltungsstätte') || l.includes('veranstaltungsort')) return 'Event Spaces';
     if (l.includes('theater') || l.includes('theatre')) return 'Theatres';
     if (l.includes('kino')) return 'Cinemas';
-    if (l.includes('spielhalle') || l.includes('spielcasino')) return 'Gaming';
+    if (l.includes('spielhalle') || l.includes('spielcasino') || l.includes('bowling') || l.includes('billard')) return 'Gaming';
     return 'Venues';
   }
 
