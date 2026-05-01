@@ -1,1 +1,319 @@
-{"total_checked":12385,"hit_count":1428,"total_removed_min":46276,"total_removed_median":60789,"floor_count":394}
+{
+  "last_updated": "2026-05-01T00:27:31.024449+00:00",
+  "total_places_queued": 16541,
+  "total_checked": 12675,
+  "hit_count": 1440,
+  "total_removed_min": 46583,
+  "total_removed_median": 61195,
+  "floor_count": 43,
+  "area_stats": {
+    "Adlershof": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Alt-Hohenschönhausen": {
+      "checked": 20,
+      "hits": 3
+    },
+    "Alt-Treptow": {
+      "checked": 30,
+      "hits": 0
+    },
+    "Altglienicke": {
+      "checked": 1,
+      "hits": 1
+    },
+    "Baumschulenweg": {
+      "checked": 4,
+      "hits": 2
+    },
+    "Biesdorf": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Blankenburg": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Borsigwalde": {
+      "checked": 14,
+      "hits": 2
+    },
+    "Britz": {
+      "checked": 32,
+      "hits": 3
+    },
+    "Buckow": {
+      "checked": 11,
+      "hits": 1
+    },
+    "Charlottenburg": {
+      "checked": 1277,
+      "hits": 165
+    },
+    "Charlottenburg-Nord": {
+      "checked": 13,
+      "hits": 0
+    },
+    "Dahlem": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Falkenberg": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Fennpfuhl": {
+      "checked": 12,
+      "hits": 1
+    },
+    "Französisch Buchholz": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Friedenau": {
+      "checked": 77,
+      "hits": 13
+    },
+    "Friedrichsfelde": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Friedrichshain": {
+      "checked": 1133,
+      "hits": 147
+    },
+    "Frohnau": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Gesundbrunnen": {
+      "checked": 469,
+      "hits": 37
+    },
+    "Gropiusstadt": {
+      "checked": 3,
+      "hits": 1
+    },
+    "Grunewald": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Halensee": {
+      "checked": 40,
+      "hits": 5
+    },
+    "Hansaviertel": {
+      "checked": 27,
+      "hits": 6
+    },
+    "Haselhorst": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Heiligensee": {
+      "checked": 3,
+      "hits": 0
+    },
+    "Heinersdorf": {
+      "checked": 19,
+      "hits": 1
+    },
+    "Hermsdorf": {
+      "checked": 15,
+      "hits": 3
+    },
+    "Karlshorst": {
+      "checked": 1,
+      "hits": 1
+    },
+    "Karow": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Kladow": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Konradshöhe": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Kreuzberg": {
+      "checked": 1410,
+      "hits": 139
+    },
+    "Köpenick": {
+      "checked": 3,
+      "hits": 2
+    },
+    "Lankwitz": {
+      "checked": 5,
+      "hits": 1
+    },
+    "Lichtenberg": {
+      "checked": 15,
+      "hits": 1
+    },
+    "Lichtenrade": {
+      "checked": 4,
+      "hits": 1
+    },
+    "Lichterfelde": {
+      "checked": 9,
+      "hits": 1
+    },
+    "Lübars": {
+      "checked": 1,
+      "hits": 1
+    },
+    "Mariendorf": {
+      "checked": 52,
+      "hits": 10
+    },
+    "Marienfelde": {
+      "checked": 2,
+      "hits": 0
+    },
+    "Marzahn": {
+      "checked": 8,
+      "hits": 1
+    },
+    "Mitte": {
+      "checked": 1968,
+      "hits": 236
+    },
+    "Moabit": {
+      "checked": 635,
+      "hits": 51
+    },
+    "Märkisches Viertel": {
+      "checked": 11,
+      "hits": 1
+    },
+    "Neu-Hohenschönhausen": {
+      "checked": 13,
+      "hits": 2
+    },
+    "Neukölln": {
+      "checked": 1147,
+      "hits": 127
+    },
+    "Niederschöneweide": {
+      "checked": 2,
+      "hits": 0
+    },
+    "Niederschönhausen": {
+      "checked": 13,
+      "hits": 2
+    },
+    "Nikolassee": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Oberschöneweide": {
+      "checked": 4,
+      "hits": 0
+    },
+    "Pankow": {
+      "checked": 94,
+      "hits": 12
+    },
+    "Prenzlauer Berg": {
+      "checked": 1242,
+      "hits": 140
+    },
+    "Reinickendorf": {
+      "checked": 242,
+      "hits": 17
+    },
+    "Rosenthal": {
+      "checked": 1,
+      "hits": 1
+    },
+    "Rudow": {
+      "checked": 2,
+      "hits": 0
+    },
+    "Rummelsburg": {
+      "checked": 9,
+      "hits": 1
+    },
+    "Schlachtensee": {
+      "checked": 1,
+      "hits": 0
+    },
+    "Schmargendorf": {
+      "checked": 6,
+      "hits": 0
+    },
+    "Schöneberg": {
+      "checked": 781,
+      "hits": 107
+    },
+    "Siemensstadt": {
+      "checked": 8,
+      "hits": 1
+    },
+    "Spandau": {
+      "checked": 5,
+      "hits": 3
+    },
+    "Stadtrandsiedlung Malchow": {
+      "checked": 2,
+      "hits": 0
+    },
+    "Steglitz": {
+      "checked": 42,
+      "hits": 6
+    },
+    "Tegel": {
+      "checked": 91,
+      "hits": 12
+    },
+    "Tempelhof": {
+      "checked": 261,
+      "hits": 16
+    },
+    "Tiergarten": {
+      "checked": 256,
+      "hits": 40
+    },
+    "Waidmannslust": {
+      "checked": 10,
+      "hits": 1
+    },
+    "Wedding": {
+      "checked": 472,
+      "hits": 39
+    },
+    "Weißensee": {
+      "checked": 217,
+      "hits": 13
+    },
+    "Westend": {
+      "checked": 47,
+      "hits": 8
+    },
+    "Wilhelmsruh": {
+      "checked": 7,
+      "hits": 0
+    },
+    "Wilhelmstadt": {
+      "checked": 2,
+      "hits": 1
+    },
+    "Wilmersdorf": {
+      "checked": 322,
+      "hits": 41
+    },
+    "Wittenau": {
+      "checked": 32,
+      "hits": 8
+    },
+    "Zehlendorf": {
+      "checked": 1,
+      "hits": 0
+    }
+  }
+}

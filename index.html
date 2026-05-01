@@ -1735,9 +1735,9 @@
     // Re-label citywide totals in the new language
     const ctMin = document.getElementById('hs-citywide-min');
     const ctMax = document.getElementById('hs-citywide-max');
-    if (ctMin && ctMin.textContent && window._totalRemovedMin != null) {
+    if (ctMin && ctMin.textContent && window._totalRemovedMedian != null) {
       const loc = lang === 'de' ? 'de' : 'en';
-      ctMin.textContent = '~' + window._totalRemovedMin.toLocaleString(loc) + ' ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
+      ctMin.textContent = '~' + window._totalRemovedMedian.toLocaleString(loc) + ' ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
       if (ctMax && window._totalRemovedMax != null)
         ctMax.textContent = (lang === 'de' ? 'bestätigte Spanne: ' : 'confirmed range: ') + (window._totalRemovedMin || 0).toLocaleString(loc) + '–' + window._totalRemovedMax.toLocaleString(loc) + '+';
     }
@@ -2221,6 +2221,7 @@
     // so we use removed_min as a conservative stand-in — the real max is unknowably higher.
     const totalRemovedMax = allData.reduce((s, p) => s + (p.removed_max != null ? p.removed_max : (p.removed_min || 0)), 0);
     window._totalRemovedMin = meta.total_removed_min || totalRemoved;
+    window._totalRemovedMedian = meta.total_removed_median || totalRemoved;
     window._totalRemovedMax = totalRemovedMax;
     const locale = currentLang === 'de' ? 'de' : 'en';
     const ctMin = document.getElementById('hs-citywide-min');
@@ -3135,7 +3136,7 @@
     },
     {
       kicker: '', head: null, note: null,
-      dim: .82, markers: false, counter: true, isLast: true,
+      dim: .55, markers: false, counter: true, revealMarkers: true, isLast: true,
     },
   ];
 
@@ -3148,7 +3149,7 @@
     },
     {
       kicker: '', head: null, note: null,
-      dim: .82, markers: false, counter: true, isLast: true,
+      dim: .55, markers: false, counter: true, revealMarkers: true, isLast: true,
     },
   ];
 
