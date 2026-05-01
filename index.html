@@ -1744,6 +1744,11 @@
     document.querySelectorAll('.key-sev-name').forEach((el, i) => { el.textContent = S.sevLabels[i]; });
     document.querySelectorAll('.key-sev-range').forEach((el, i) => { el.textContent = S.sevRanges[i]; });
 
+    // About modal — swap data-en / data-de on all labelled elements
+    document.querySelectorAll('#about-modal [data-en]').forEach(el => {
+      el.textContent = lang === 'de' ? el.dataset.de : el.dataset.en;
+    });
+
     // Re-render dynamic content
     if (_storedMeta) renderHsSub(_storedMeta);
     if (allData.length) { renderList(); scheduleStatUpdate(); }
@@ -3499,32 +3504,64 @@
       Berlin Trust Index<br><span class="at-de">Berlin Vertrauensindex</span>
     </div>
 
-    <p class="about-lede">A map of Google Maps reviews removed from Berlin venues after defamation complaints, using §&nbsp;NetzDG.</p>
+    <p class="about-lede"
+       data-en="Can you trust Google Maps? Reviews removed from Berlin venues, as disclosed by Google."
+       data-de="Kann man Google Maps vertrauen? Entfernte Bewertungen aus Berliner Betrieben, von Google offengelegt."
+    >Can you trust Google Maps? Reviews removed from Berlin venues, as disclosed by Google.</p>
 
     <div class="about-block">
-      <div class="about-block-head">How it works</div>
-      <p class="about-body">Germany's NetzDG law requires platforms to remove flagged content within 24 hours or face fines up to €50 million. Defamation is covered. Legal services file complaints from €49. Google processes them. The reviewer often doesn't know.</p>
+      <div class="about-block-head"
+           data-en="What this is"
+           data-de="Worum es geht"
+      >What this is</div>
+      <p class="about-body"
+         data-en="Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect those disclosures across the city and publish them as a map."
+         data-de="Google veröffentlicht auf Berliner Unternehmensprofilen einen Hinweis darüber, wie viele Bewertungen nach Diffamierungsbeschwerden entfernt wurden. Wir erfassen diese Angaben stadtweit und stellen sie als Karte dar."
+      >Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect those disclosures across the city and publish them as a map.</p>
     </div>
 
     <div class="about-block">
-      <div class="about-block-head">The data</div>
+      <div class="about-block-head"
+           data-en="How removals happen"
+           data-de="Wie Löschungen ablaufen"
+      >How removals happen</div>
+      <p class="about-body"
+         data-en="Germany's content laws require platforms to act on defamation complaints quickly. Law firms file complaints on behalf of paying clients. Google processes the complaint and removes the review."
+         data-de="Deutsche Gesetze verpflichten Plattformen, schnell auf Diffamierungsbeschwerden zu reagieren. Anwaltskanzleien reichen Beschwerden im Auftrag zahlender Mandanten ein. Google bearbeitet die Beschwerde und entfernt die Bewertung."
+      >Germany's content laws require platforms to act on defamation complaints quickly. Law firms file complaints on behalf of paying clients. Google processes the complaint and removes the review.</p>
+    </div>
+
+    <div class="about-block">
+      <div class="about-block-head"
+           data-en="The data"
+           data-de="Die Daten"
+      >The data</div>
       <p class="about-body" id="about-numbers-text"></p>
-      <p class="about-body">Google discloses removal counts in bands (1, 2–5, 6–10 … "over 250"). Counts cover the last 365 days and exclude appeals. All figures use the midpoint of each band. Google stops counting above 250 — those venues are a floor, not a total.</p>
+      <p class="about-body"
+         data-en="Google discloses removal counts in bands (1, 2–5, 6–10 … &ldquo;over 250&rdquo;). Counts cover the last 365 days. We use the median of each band for citywide totals and venue figures; the band itself is shown alongside so the range is visible. Figures involving venues at the 250+ cap are minimums; their true counts may be higher."
+         data-de="Google legt Löschzahlen in Spannen offen (1, 2–5, 6–10 … &bdquo;über 250&ldquo;). Die Zahlen decken die letzten 365 Tage ab. Wir verwenden den Median jeder Spanne für stadtweite Summen und einzelne Betriebe; die Spanne selbst wird daneben angezeigt, damit der Bereich sichtbar bleibt. Werte für Betriebe an der Obergrenze von 250+ sind Mindestzahlen; die tatsächlichen Zahlen können höher liegen."
+      >Google discloses removal counts in bands (1, 2–5, 6–10 … &ldquo;over 250&rdquo;). Counts cover the last 365 days. We use the median of each band for citywide totals and venue figures; the band itself is shown alongside so the range is visible. Figures involving venues at the 250+ cap are minimums; their true counts may be higher.</p>
     </div>
 
     <div class="about-block">
-      <div class="about-block-head">Caveats</div>
-      <p class="about-body">Google's own disclosures. Nothing private. High counts mean complaints were filed and processed — not that a venue did anything wrong.</p>
+      <div class="about-block-head"
+           data-en="Caveats"
+           data-de="Hinweise"
+      >Caveats</div>
+      <p class="about-body"
+         data-en="Only public Google disclosures are used. No private data. High counts mean complaints were filed and processed — not that a venue did anything wrong. We do not name reviewers, complainants, or law firms acting on individual cases, and we do not reproduce removed review content."
+         data-de="Es werden ausschließlich öffentliche Google-Angaben verwendet. Keine privaten Daten. Hohe Zahlen bedeuten, dass Beschwerden eingereicht und bearbeitet wurden — nicht, dass ein Betrieb etwas falsch gemacht hat. Wir nennen keine Verfasser, Beschwerdeführer oder Kanzleien, die in Einzelfällen tätig waren, und wir geben keine entfernten Bewertungstexte wieder."
+      >Only public Google disclosures are used. No private data. High counts mean complaints were filed and processed — not that a venue did anything wrong. We do not name reviewers, complainants, or law firms acting on individual cases, and we do not reproduce removed review content.</p>
     </div>
 
     <div class="about-footer">
-      Independent. No advertisers.
-      &nbsp;·&nbsp;
-      <a href="https://berlintrustindex.com/methodology.html" target="_blank">Methodology</a>
+      <a href="https://berlintrustindex.com/methodology.html" target="_blank"
+         data-en="Methodology" data-de="Methodik">Methodology</a>
       &nbsp;·&nbsp;
       <a href="https://github.com/berlintracker/berlin.defamation.tracker" target="_blank">GitHub</a>
       &nbsp;·&nbsp;
-      <a id="contact-link" href="#">Contact</a>
+      <a id="contact-link" href="#"
+         data-en="Contact" data-de="Kontakt">Contact</a>
     </div>
   </div>
 </div>
