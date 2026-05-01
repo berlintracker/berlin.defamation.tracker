@@ -952,6 +952,9 @@
     }
 
     .about-body + .about-body { margin-top: 8px; }
+    .about-body--method { margin-top: 6px; }
+    .about-body--method a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .about-body--method a:hover { text-decoration: underline; }
 
     /* Flat content blocks in About modal */
     .about-block { margin-top: 18px; }
@@ -1588,7 +1591,7 @@
   const STRINGS = {
     en: {
       title:       'Berlin Defamation<br>Review Tracker',
-      description: 'Can you trust Google Maps? Reviews removed from Berlin venues, as disclosed by Google.',
+      description: 'Can you trust Google Maps? Removal data from Berlin venues, as disclosed by Google.',
       aboutLink:   'About this project →',
       howWeGot:    'How we got this data →',
       modeRemoved: 'Most Removed',
@@ -1638,7 +1641,7 @@
     },
     de: {
       title:       'Berlin Trust&#8209;Index',
-      description: 'Kann man Google Maps vertrauen? Entfernte Bewertungen aus Berliner Betrieben, von Google offengelegt.',
+      description: 'Kann man Google Maps vertrauen? Löschdaten aus Berliner Betrieben, von Google offengelegt.',
       aboutLink:   'Über dieses Projekt →',
       howWeGot:    'Wie wir die Daten erhoben haben →',
       modeRemoved: 'Meiste entfernt',
@@ -3505,9 +3508,9 @@
     </div>
 
     <p class="about-lede"
-       data-en="Can you trust Google Maps? Reviews removed from Berlin venues, as disclosed by Google."
-       data-de="Kann man Google Maps vertrauen? Entfernte Bewertungen aus Berliner Betrieben, von Google offengelegt."
-    >Can you trust Google Maps? Reviews removed from Berlin venues, as disclosed by Google.</p>
+       data-en="Can you trust Google Maps? Removal data from Berlin venues, as disclosed by Google."
+       data-de="Kann man Google Maps vertrauen? Löschdaten aus Berliner Betrieben, von Google offengelegt."
+    >Can you trust Google Maps? Removal data from Berlin venues, as disclosed by Google.</p>
 
     <div class="about-block">
       <div class="about-block-head"
@@ -3515,9 +3518,12 @@
            data-de="Worum es geht"
       >What this is</div>
       <p class="about-body"
-         data-en="Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect those disclosures across the city and publish them as a map."
-         data-de="Google veröffentlicht auf Berliner Unternehmensprofilen einen Hinweis darüber, wie viele Bewertungen nach Diffamierungsbeschwerden entfernt wurden. Wir erfassen diese Angaben stadtweit und stellen sie als Karte dar."
-      >Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect those disclosures across the city and publish them as a map.</p>
+         data-en="Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect the data and map it."
+         data-de="Google veröffentlicht auf Berliner Unternehmensprofilen einen Hinweis darüber, wie viele Bewertungen nach Diffamierungsbeschwerden entfernt wurden. Wir erfassen die Daten und stellen sie auf einer Karte dar."
+      >Google publishes a notice on Berlin business listings disclosing how many reviews have been removed following defamation complaints. We collect the data and map it.</p>
+      <p class="about-body about-body--method">
+        <a href="https://berlintrustindex.com/methodology.html" target="_blank" data-en="Methodology →" data-de="Methodik →">Methodology →</a>
+      </p>
     </div>
 
     <div class="about-block">
@@ -3555,9 +3561,6 @@
     </div>
 
     <div class="about-footer">
-      <a href="https://berlintrustindex.com/methodology.html" target="_blank"
-         data-en="Methodology" data-de="Methodik">Methodology</a>
-      &nbsp;·&nbsp;
       <a href="https://github.com/berlintracker/berlin.defamation.tracker" target="_blank">GitHub</a>
       &nbsp;·&nbsp;
       <a id="contact-link" href="#"
