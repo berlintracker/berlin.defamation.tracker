@@ -47,11 +47,11 @@
       --border-subtle:  var(--rule);
 
       /* Severity colours */
-      --sev-1: #bdbbb4;
+      --sev-1: #cfc8b8;
       --sev-2: #5a7ea6;
       --sev-3: #c49a3a;
-      --sev-4: #b24a3a;
-      --sev-5: #7c1f1f;
+      --sev-4: #8a6418;
+      --sev-5: #4a3410;
 
       /* Vertical rhythm — base unit 8px */
       --space-1: 6px;
@@ -685,7 +685,7 @@
     .key-row:last-of-type { margin-bottom: 0; }
     .key-row[data-sev] { border-radius: 5px; padding: 3px 5px; margin-left: -5px; cursor: pointer; transition: background .15s; }
     .key-row[data-sev]:hover { background: rgba(0,0,0,0.04); }
-    .key-row[data-sev].active { background: rgba(178,74,58,0.08); color: var(--accent); }
+    .key-row[data-sev].active { background: rgba(196,154,58,0.10); color: var(--accent); }
 
     .key-shape {
       width: 16px;
@@ -1600,9 +1600,9 @@
       hsSub:       (pct, hits, total) => '<span class="secondary-stat"><strong>' + pct + '%</strong>of venues checked (' + hits + ' of ' + total.toLocaleString('en') + ') have had at least one review removed.</span>',
       hsDisclose:    'Disclosed by Google. Does not imply wrongdoing.',
       persistKicker: 'In this area',
-      keyTitle:    'What the patterns suggest',
-      sevLabels:   ['Rare', 'Repeated', 'Significant', 'Extreme'],
-      sevRanges:   ['1–10 removals', '11–50 removals', '51–200 removals', '200+ removals'],
+      keyTitle:    'Number of removals',
+      sevLabels:   ['1–10 removals', '11–50 removals', '51–200 removals', '200+ removals'],
+      sevRanges:   ['', '', '', ''],
       keyDisclaim: 'Removals disclosed by Google.<br>Does not imply wrongdoing.',
       clusterLbl:  'Group nearby pins',
       aboutBtn:    'About',
@@ -1622,7 +1622,7 @@
       upTo:        'up to ',
       oneInN:      n => '1 in ' + n + ' reviews',
       mostReviews: 'the majority of reviews',
-      perVisible:  () => 'More reviews removed than remain.',
+      perVisible:  () => 'Removed reviews outnumber visible reviews.',
       removed:     'removed',
       rate:        'rate',
       removedOf:   n => 'removed, ' + n + ' remaining',
@@ -1650,9 +1650,9 @@
       hsSub:       (pct, hits, total) => '<span class="secondary-stat"><strong>' + pct + ' %</strong>der geprüften Betriebe (' + hits + ' von ' + total.toLocaleString('de') + ') hatten mindestens eine entfernte Bewertung.</span>',
       hsDisclose:    'Von Google offengelegt. Kein Hinweis auf Fehlverhalten.',
       persistKicker: 'In diesem Bereich',
-      keyTitle:    'Was die Muster zeigen',
-      sevLabels:   ['Selten', 'Wiederholt', 'Erheblich', 'Extrem'],
-      sevRanges:   ['1–10 Entfernungen', '11–50 Entfernungen', '51–200 Entfernungen', '200+ Entfernungen'],
+      keyTitle:    'Anzahl der Entfernungen',
+      sevLabels:   ['1–10 Entfernungen', '11–50 Entfernungen', '51–200 Entfernungen', '200+ Entfernungen'],
+      sevRanges:   ['', '', '', ''],
       keyDisclaim: 'Von Google offengelegt.<br>Kein Hinweis auf Fehlverhalten.',
       clusterLbl:  'Nahe Betriebe gruppieren',
       aboutBtn:    'Info',
@@ -1672,7 +1672,7 @@
       upTo:        'bis zu ',
       oneInN:      n => '1 von ' + n + ' Bewertungen',
       mostReviews: 'die meisten Bewertungen',
-      perVisible:  () => 'Mehr entfernt als noch sichtbar.',
+      perVisible:  () => 'Entfernte Bewertungen übersteigen die sichtbaren.',
       removed:     'entfernt',
       rate:        'Rate',
       removedOf:   n => 'entfernt, ' + n + ' verbleibend',
@@ -1863,10 +1863,10 @@
 
   // ── Tiers ──────────────────────────────────────────────────
   const TIERS = [
-    { min: 1,   max: 10,       sev: 1, color: "#bdbbb4", scale: 0.7  },
+    { min: 1,   max: 10,       sev: 1, color: "#cfc8b8", scale: 0.7  },
     { min: 11,  max: 50,       sev: 2, color: "#c49a3a", scale: 0.9  },
-    { min: 51,  max: 200,      sev: 3, color: "#b24a3a", scale: 1.0  },
-    { min: 201, max: Infinity, sev: 4, color: "#7c1f1f", scale: 1.0  },
+    { min: 51,  max: 200,      sev: 3, color: "#8a6418", scale: 1.0  },
+    { min: 201, max: Infinity, sev: 4, color: "#4a3410", scale: 1.0  },
   ];
 
   function getTier(removed) {
@@ -2864,7 +2864,7 @@
     en: [
       {
         type: 'netzDG', weight: 3,
-        text: () => `<span class="fact-title">NetzDG: 24 hours to comply or face €50M.</span>`,
+        text: () => `<span class="fact-title">Germany's content laws give platforms 24 hours to act on flagged reviews.</span>`,
       },
 
       {
@@ -2881,12 +2881,17 @@
       {
         type: 'lawyer', weight: 2,
         text: () => `<span class="fact-title">Google won't say who filed.</span>`
-                  + `<span class="fact-body">The complaint is signed <span class="fact-em">"gez. Rechtsanwalt"</span> — a lawyer. <span class="fact-strong">No name. No firm. The review is gone anyway.</span></span>`,
+                  + `<span class="fact-body">The complaint is signed <span class="fact-em">"gez. Rechtsanwalt"</span> — a lawyer. No name. No firm.</span>`,
       },
       {
         type: 'firms', weight: 2,
         text: () => `<span class="fact-title">Review removal is a service you can buy.</span>`
-                  + `<span class="fact-body">At least ten firms offer it. From €49 per complaint.</span>`,
+                  + `<span class="fact-body">At least ten firms offer it. From €99 per complaint.</span>`,
+      },
+      {
+        type: 'cash', weight: 2,
+        text: () => `<span class="fact-title">Without a receipt, customer status is hard to prove.</span>`
+                  + `<span class="fact-body">Reviews from cash transactions are easier to remove.</span>`,
       },
 
 
@@ -2894,7 +2899,7 @@
     de: [
       {
         type: 'netzDG', weight: 3,
-        text: () => `<span class="fact-title">NetzDG: 24 Stunden – oder 50 Mio. € Strafe.</span>`,
+        text: () => `<span class="fact-title">Deutschlands Inhaltsgesetze geben Plattformen 24 Stunden, um auf gemeldete Bewertungen zu reagieren.</span>`,
       },
 
       {
@@ -2911,12 +2916,17 @@
       {
         type: 'lawyer', weight: 2,
         text: () => `<span class="fact-title">Google sagt nicht, wer klagte.</span>`
-                  + `<span class="fact-body">Unterzeichnet <span class="fact-em">„gez. Rechtsanwalt"</span> – ein Anwalt. <span class="fact-strong">Kein Name. Keine Kanzlei. Die Bewertung ist trotzdem weg.</span></span>`,
+                  + `<span class="fact-body">Unterzeichnet <span class="fact-em">„gez. Rechtsanwalt"</span> – ein Anwalt. Kein Name. Keine Kanzlei.</span>`,
       },
       {
         type: 'firms', weight: 2,
         text: () => `<span class="fact-title">Bewertungsentfernung ist käuflich.</span>`
-                  + `<span class="fact-body">Mindestens zehn Firmen bieten es an. Ab 49 € pro Beschwerde.</span>`,
+                  + `<span class="fact-body">Mindestens zehn Firmen bieten es an. Ab 99 € pro Beschwerde.</span>`,
+      },
+      {
+        type: 'cash', weight: 2,
+        text: () => `<span class="fact-title">Ohne Kassenbon ist der Kundenstatus schwer zu belegen.</span>`
+                  + `<span class="fact-body">Bewertungen von Barzahlungen sind leichter zu entfernen.</span>`,
       },
 
 
@@ -3137,8 +3147,8 @@
   const OB_BEATS_DE = [
     {
       kicker: '',
-      head: 'Deutschlands Hassrede-Gesetz erlaubt es jedem, eine Google-Bewertung für <strong>49 €</strong> melden zu lassen.',
-      note: 'Die Plattform hat 24 Stunden, um sie zu entfernen.',
+      head: 'In Deutschland können Google-Bewertungen innerhalb von 24 Stunden nach einer Diffamierungsbeschwerde entfernt werden.<br>Anwaltskanzleien bewerben diesen Service ab 99 €.',
+      note: null,
       dim: .82, markers: false, counter: false,
     },
     {
@@ -3150,8 +3160,8 @@
   const OB_BEATS = [
     {
       kicker: '',
-      head: "Germany's hate-speech law lets anyone pay<br><strong>€49</strong> to have a Google review flagged.",
-      note: 'The platform has <strong>24 hours</strong> to remove it.',
+      head: "In Germany, Google reviews can be removed within 24 hours of a defamation complaint.<br>Law firms advertise this service from €99 a removal.",
+      note: null,
       dim: .82, markers: false, counter: false,
     },
     {
