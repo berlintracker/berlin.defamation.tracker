@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impressum — Berlin Trust Index</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink:    #1a1814;
+      --ink-2:  #3d3830;
+      --muted:  #8a8278;
+      --rule:   #e8e2d8;
+      --paper:  #faf8f4;
+      --bg:     #f5f2ec;
+    }
+    html { background: var(--bg); color: var(--ink); font-family: "Inter", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+    body { max-width: 560px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .back { display: inline-block; font-size: 12px; color: var(--muted); text-decoration: none; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 40px; }
+    .back:hover { color: var(--ink); }
+
+    h1 { font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 6px; }
+    .law-ref { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 40px; }
+
+    section { margin-bottom: 32px; }
+    h2 { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; margin-bottom: 10px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
+    p { font-size: 14px; color: var(--ink-2); margin-bottom: 6px; }
+    a { color: var(--ink-2); }
+    a:hover { color: var(--ink); }
+
+    .note { font-size: 12px; color: var(--muted); margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--rule); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <a class="back" href="/">← Berlin Trust Index</a>
+
+  <h1>Impressum</h1>
+  <p class="law-ref">Angaben gemäß § 5 DDG</p>
+
+  <section>
+    <h2>Anbieter</h2>
+    <p>Berlin Trust Index<br>
+    Berlin Tracker</p>
+  </section>
+
+  <section>
+    <h2>Postanschrift</h2>
+    <p>In Bearbeitung beim Anonymitäts-Service von<br>
+    Reporter ohne Grenzen e.V.</p>
+  </section>
+
+  <section>
+    <h2>Kontakt</h2>
+    <p>E-Mail: <a id="imp-email" href="#">berlin.tracker@proton.me</a></p>
+  </section>
+
+  <section>
+    <h2>Verantwortlich für den Inhalt nach § 18 MStV</h2>
+    <p>Berlin Tracker<br>
+    Postanschrift wie oben.</p>
+  </section>
+
+  <section>
+    <h2>Inhalt und Haftung</h2>
+    <p>Diese Website gibt ausschließlich Daten wieder, die Google auf seiner eigenen Plattform öffentlich zugänglich gemacht hat. Es werden keine privaten Daten erhoben oder verarbeitet. Die Inhalte dienen journalistischen und dokumentarischen Zwecken.</p>
+  </section>
+
+  <p class="note">Diese Website ist ein unabhängiges journalistisches Projekt. Sie steht in keiner Verbindung zu Google LLC.</p>
+
+  <script>
+    (function(){
+      var u='berlin.tracker', d='proton.me';
+      var a=document.getElementById('imp-email');
+      if(a){ a.href='mai'+'lto:'+u+'@'+d; }
+    })();
+  </script>
+
+</body>
+</html>

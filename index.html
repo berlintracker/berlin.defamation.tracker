@@ -1429,7 +1429,7 @@
       <img src="./bear.png" class="site-bear" alt="" aria-hidden="true">
     </h1>
     <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
-    <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">This site reproduces data published by Google. It does not reflect on whether any complaint was justified.</p>
+    <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
   </div>
   <div id="modes">
     <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
@@ -1593,7 +1593,7 @@
     en: {
       title:       'Berlin Defamation<br>Review Tracker',
       description: 'Can you trust Google Maps? Removal data from Berlin venues, as disclosed by Google.',
-      disclaimer:  'This site reproduces data published by Google. It does not reflect on whether any complaint was justified.',
+      disclaimer:  'Data sourced from Google\'s public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.',
       aboutLink:   'About this project →',
       howWeGot:    'How we got this data →',
       modeRemoved: 'Most Removed',
@@ -1644,7 +1644,7 @@
     de: {
       title:       'Berlin Trust&#8209;Index',
       description: 'Kann man Google Maps vertrauen? Löschdaten aus Berliner Betrieben, von Google offengelegt.',
-      disclaimer:  'Diese Website gibt von Google veröffentlichte Daten wieder. Sie trifft keine Aussage darüber, ob Beschwerden berechtigt waren.',
+      disclaimer:  'Daten aus öffentlichen Google-Angaben. Es wird keine Aussage darüber getroffen, ob Beschwerden rechtlich gerechtfertigt waren, ob Bewertungen sachlich zutreffend waren oder ob ein Betrieb unrechtmäßig gehandelt hat.',
       aboutLink:   'Über dieses Projekt →',
       howWeGot:    'Wie wir die Daten erhoben haben →',
       modeRemoved: 'Meiste entfernt',
@@ -3134,7 +3134,7 @@
     {
       kicker: '',
       head: 'Die Folge: Einige Berliner Betriebe nutzen dieses Gesetz,<br>um negative Bewertungen löschen zu lassen.<span class="ob-gap"></span><em>Kann man Google Maps noch trauen?</em>',
-      note: null,
+      note: "<span style="font-size:12px;color:var(--muted);font-style:normal;font-family:Inter,sans-serif;"><strong style="color:var(--ink-2);">Hinweis</strong> — Diffamierungsbeschwerden können sowohl gefälschte als auch echte Bewertungen betreffen.</span>",
       dim: .82, markers: false, counter: false,
     },
     {
@@ -3153,7 +3153,7 @@
     {
       kicker: '',
       head: "The result: some Berlin venues use this law<br>to have negative reviews removed.<span class='ob-gap'></span><em>Can you still trust Google Maps?</em>",
-      note: null,
+      note: "<span style="font-size:12px;color:var(--muted);font-style:normal;font-family:Inter,sans-serif;"><strong style="color:var(--ink-2);">NB</strong> — Defamation complaints may target fake reviews as well as genuine ones.</span>",
       dim: .82, markers: false, counter: false,
     },
     {
@@ -3561,9 +3561,13 @@
            data-de="Impressum"
       >Impressum</div>
       <p class="about-body" style="font-size:11.5px;"
-         data-en="Angaben gemäß §5 TMG. Berlin Tracker is an independent journalistic project documenting publicly disclosed review removal data from Google Maps. Responsible for content (§55 Abs.&nbsp;2 MStV): Berlin Tracker. Contact: berlin.tracker@proton.me — a postal address is available on request. This site publishes only data disclosed publicly by Google on its own platform. No private data is collected or processed."
-         data-de="Angaben gemäß §5 TMG. Berlin Tracker ist ein unabhängiges journalistisches Projekt, das öffentlich zugängliche Daten zu Bewertungslöschungen auf Google Maps dokumentiert. Verantwortlich für den Inhalt (§55 Abs.&nbsp;2 MStV): Berlin Tracker. Kontakt: berlin.tracker@proton.me — eine Postanschrift wird auf Anfrage mitgeteilt. Diese Website veröffentlicht ausschließlich Daten, die Google auf seiner eigenen Plattform öffentlich zugänglich gemacht hat. Es werden keine privaten Daten erhoben oder verarbeitet."
-      >Angaben gemäß §5 TMG. Berlin Tracker is an independent journalistic project documenting publicly disclosed review removal data from Google Maps. Responsible for content (§55 Abs.&nbsp;2 MStV): Berlin Tracker. Contact: berlin.tracker@proton.me — a postal address is available on request. This site publishes only data disclosed publicly by Google on its own platform. No private data is collected or processed.</p>
+         data-en="Angaben gemäß § 5 DDG. Berlin Tracker is an independent journalistic project. Verantwortlich für den Inhalt (§ 18 MStV): Berlin Tracker. Postal address: pending registration with Reporter ohne Grenzen e.V. anonymity service. Contact: berlin.tracker@proton.me"
+         data-de="Angaben gemäß § 5 DDG. Berlin Tracker ist ein unabhängiges journalistisches Projekt. Verantwortlich für den Inhalt (§ 18 MStV): Berlin Tracker. Postanschrift: in Bearbeitung beim Anonymitäts-Service von Reporter ohne Grenzen e.V. Kontakt: berlin.tracker@proton.me"
+      >Angaben gemäß § 5 DDG. Berlin Tracker is an independent journalistic project. Verantwortlich für den Inhalt (§ 18 MStV): Berlin Tracker. Postal address: pending registration with Reporter ohne Grenzen e.V. anonymity service. Contact: berlin.tracker@proton.me</p>
+      <p class="about-body" style="font-size:11px;margin-top:6px;">
+        <a href="/impressum.html" target="_blank" style="color:var(--ink-2);border-bottom:1px solid var(--rule);"
+           data-en="Full Impressum →" data-de="Vollständiges Impressum →">Full Impressum →</a>
+      </p>
     </div>
 
     <div class="about-footer">

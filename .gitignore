@@ -17,3 +17,6 @@
 
 # This file
 !.gitignore
+
+# Impressum
+!impressum.html
