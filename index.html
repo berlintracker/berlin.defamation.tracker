@@ -1489,8 +1489,16 @@
 
       <!-- Citywide total — always shows Berlin-wide removal count, never changes with pan -->
       <div id="hs-citywide-total" style="display:none; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid #e4dfd6;">
-        <div id="hs-citywide-min" style="font-family:'Inter',system-ui,sans-serif; font-size:11px; font-weight:500; color:var(--ink); letter-spacing:.01em;"></div>
-        <div id="hs-citywide-max" style="font-family:'Inter',system-ui,sans-serif; font-size:10px; color:var(--muted); margin-top:1px;"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+          <div>
+            <div id="hs-citywide-min" style="font-family:'Inter',system-ui,sans-serif; font-size:11px; font-weight:500; color:var(--ink); letter-spacing:.01em;"></div>
+            <div id="hs-citywide-max" style="font-family:'Inter',system-ui,sans-serif; font-size:10px; color:var(--muted); margin-top:1px;"></div>
+          </div>
+          <div style="position:relative;flex-shrink:0;">
+            <span id="hs-citywide-info-btn" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:9px;font-family:'Inter',system-ui,sans-serif;font-weight:600;cursor:pointer;margin-top:1px;line-height:1;user-select:none;">i</span>
+            <div id="hs-citywide-info-tip" style="display:none;position:absolute;right:0;top:18px;width:210px;background:#fff;border:1px solid #e4dfd6;border-radius:5px;padding:8px 10px;font-size:11px;color:var(--ink-2);line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:1200;"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Footer: data freshness only — disclosure moved to key -->
@@ -1747,6 +1755,10 @@
       ctMin.textContent = '~' + window._totalRemovedMedian.toLocaleString(loc) + ' ' + (lang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
       if (ctMax && window._totalRemovedMax != null)
         ctMax.textContent = (lang === 'de' ? 'bestätigte Spanne: ' : 'confirmed range: ') + (window._totalRemovedMin || 0).toLocaleString(loc) + '–' + window._totalRemovedMax.toLocaleString(loc) + '+';
+      const _infoTip = document.getElementById('hs-citywide-info-tip');
+      if (_infoTip) _infoTip.textContent = lang === 'de'
+        ? 'Google nennt keine genauen Zahlen — nur Spannen (z. B. „6–10 entfernt"). Die angezeigte Zahl (~) ist der Median jeder Spanne, aufsummiert. Die bestätigte Spanne zeigt das Ergebnis bei Verwendung des niedrigsten bzw. höchsten Endes jeder Spanne.'
+        : 'Google doesn\'t give exact counts — only ranges (e.g. "6–10 removed"). The figure shown (~) is the midpoint of each range, added up across all venues. The confirmed range shows the result using the lowest and highest end of every range instead.';
     }
     document.querySelectorAll('.key-sev-name').forEach((el, i) => { el.textContent = S.sevLabels[i]; });
     document.querySelectorAll('.key-sev-range').forEach((el, i) => { el.textContent = S.sevRanges[i]; });
@@ -2271,6 +2283,19 @@
       ctMin.textContent = '~' + totalRemoved.toLocaleString(locale) + ' ' + (currentLang === 'de' ? 'Bewertungen entfernt' : 'reviews removed');
       ctMax.textContent = (currentLang === 'de' ? 'bestätigte Spanne: ' : 'confirmed range: ') + window._totalRemovedMin.toLocaleString(locale) + '–' + totalRemovedMax.toLocaleString(locale) + '+';
       ctWrap.style.display = 'block';
+      // Info tooltip
+      const _infoBtn = document.getElementById('hs-citywide-info-btn');
+      const _infoTip = document.getElementById('hs-citywide-info-tip');
+      if (_infoBtn && _infoTip) {
+        _infoTip.textContent = currentLang === 'de'
+          ? 'Google nennt keine genauen Zahlen — nur Spannen (z. B. „6–10 entfernt"). Die angezeigte Zahl (~) ist der Median jeder Spanne, aufsummiert. Die bestätigte Spanne zeigt das Ergebnis bei Verwendung des niedrigsten bzw. höchsten Endes jeder Spanne.'
+          : 'Google doesn\'t give exact counts — only ranges (e.g. "6–10 removed"). The figure shown (~) is the midpoint of each range, added up across all venues. The confirmed range shows the result using the lowest and highest end of every range instead.';
+        _infoBtn.onclick = function(e) {
+          e.stopPropagation();
+          _infoTip.style.display = _infoTip.style.display === 'none' ? 'block' : 'none';
+        };
+        document.addEventListener('click', function() { _infoTip.style.display = 'none'; }, { capture: true, once: false, passive: true });
+      }
     }
 
     // Set opening factoid ONCE — citywide overview (never repeats as a condition)
