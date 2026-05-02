@@ -1719,7 +1719,7 @@
     // Tabs
     document.querySelector('.mode-btn[data-mode="removed"]').textContent = S.modeRemoved;
     document.querySelector('.mode-btn[data-mode="rate"]').textContent    = S.modeRate;
-    document.querySelector('.mode-btn[data-mode="impact"]').textContent  = S.modeImpact;
+    const impactBtn = document.querySelector('.mode-btn[data-mode="impact"]'); if (impactBtn) impactBtn.textContent = S.modeImpact;
 
     // Map key
     document.getElementById('key-title').textContent    = S.keyTitle;
@@ -2221,6 +2221,21 @@
     });
     _mssCityStats = mssGroups;
 
+    // Precompute citywide district rate comparison for district story
+    (function() {
+      const aStats = window._areaStats || {};
+      const aHits  = {};
+      allData.forEach(p => { if (p.area) aHits[p.area] = (aHits[p.area] || 0) + 1; });
+      const ranked = Object.entries(aHits)
+        .filter(([a]) => (aStats[a] && aStats[a].checked >= 10))
+        .map(([a, h]) => ({ area: a, rate: h / aStats[a].checked }))
+        .sort((a, b) => b.rate - a.rate);
+      if (ranked.length >= 2) {
+        const top = ranked[0], bot = ranked[ranked.length - 1];
+        window._districtComp = { top: top.area, bot: bot.area, ratio: top.rate / bot.rate };
+      }
+    })();
+
     // Median removal rate across all hits — used by rating_immunity story
     const rates = allData.map(p => p._rate).filter(r => r != null).sort((a, b) => a - b);
     _cityMedianRemovalRate = rates.length ? rates[Math.floor(rates.length / 2)] : 0;
@@ -2589,15 +2604,12 @@
           return v.totalRemoved > 0 && (max / v.totalRemoved) >= 0.45;
         },
         text: (v) => {
-          // Pick randomly from top-3 by removed_min so the same venue doesn't always appear
-          const sorted = [...v.hits].sort((a, b) => (b._removed || 0) - (a._removed || 0)).slice(0, 3);
-          const totalW = sorted.reduce((s, p) => s + (p._removed || 1), 0);
-          let r = Math.random() * totalW, top = sorted[sorted.length - 1];
-          for (const p of sorted) { r -= (p._removed || 1); if (r <= 0) { top = p; break; } }
+          const sorted = [...v.hits].sort((a, b) => (b._removed || 0) - (a._removed || 0));
+          const top = sorted[0];
           const pct = top ? Math.round(((top._removed || 0) / v.totalRemoved) * 100) : null;
-          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
-          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a></span>`
-               + `<span class="fact-body">accounts for <span class="fact-num">${pct || 'most'}%</span> of removals in ${esc(v.district)}.</span>`;
+          if (!pct || pct < 10) return '';
+          return `<span class="fact-title">One venue accounts for <span class="fact-num">${pct}%</span> of removals</span>`
+               + `<span class="fact-body">in ${esc(v.district)}.</span>`;
         },
       },
       {
@@ -2628,31 +2640,11 @@
           const adj = Math.round((pick.star_rating - pick._ratingDelta) * 10) / 10;
           const hash = pick.lat && pick.lng ? `#@${pick.lat.toFixed(5)},${pick.lng.toFixed(5)},17` : '';
           const n = pick._removed || pick.removed_min || 0;
-          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(pick.id)}" class="fact-venue-link"><span class="fact-strong">${esc(pick.name)}</span></a> — <span class="fact-star">${pick.star_rating}★</span></span>`
-               + `<span class="fact-body">If the <span class="fact-num">${n}+</span> removed reviews were all 1★, the rating drops to <span class="fact-star">${adj}★</span>.</span>`;
+          return `<span class="fact-title">One venue is at <span class="fact-star">${pick.star_rating}★</span> in ${esc(v.district)}.</span>`
+               + `<span class="fact-body">If its <span class="fact-num">${n}+</span> removed reviews were all 1★, the rating would drop to <span class="fact-star">${adj}★</span>.</span>`;
         },
       },
-      {
-        type: 'mss', sessionMax: 1,
-        condition: () => {
-          if (!_mssCityStats[2]) return false;
-          const t2 = _mssCityStats[2];
-          const otherRemovals = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.removals, 0);
-          const otherVenues   = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.venues, 0);
-          if (t2.venues < 5 || otherVenues < 5) return false;
-          const t2Rate    = t2.removals / t2.venues;
-          const otherRate = otherRemovals / otherVenues;
-          return otherRate > 0 && (t2Rate / otherRate) >= 1.5;
-        },
-        text: () => {
-          const t2 = _mssCityStats[2];
-          const otherRemovals = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.removals, 0);
-          const otherVenues   = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.venues, 0);
-          const ratio = ((t2.removals / t2.venues) / (otherRemovals / otherVenues)).toFixed(1);
-          return `<span class="fact-title">Not the wealthiest neighbourhoods. Not the most deprived.</span>`
-               + `<span class="fact-body">Berlin\'s middle has <span class="fact-num">${ratio}×</span> the removal rate.</span>`;
-        },
-      },
+
       {
         type: 'launder',
         condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
@@ -2665,32 +2657,16 @@
         },
       },
       {
-        type: 'district',
-        condition: (v) => {
-          if (v.citywide || v.zoom < AREA_ZOOM_MIN) return false;
-          if (v.hits.length < 10) return false;
-          const dHits = {}, dVen = {};
-          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
-          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
-          const ranked = Object.entries(dHits)
-            .filter(([a]) => (dVen[a] || 0) >= 5)
-            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
-            .sort((a, b) => b.rate - a.rate);
-          if (ranked.length < 2) return false;
-          return (ranked[0].rate / ranked[ranked.length - 1].rate) >= 1.5;
+        type: 'district', sessionMax: 1,
+        condition: () => {
+          if (!window._districtComp) return false;
+          return window._districtComp.ratio >= 1.5;
         },
-        text: (v) => {
-          const dHits = {}, dVen = {};
-          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
-          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
-          const ranked = Object.entries(dHits)
-            .filter(([a]) => (dVen[a] || 0) >= 5)
-            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
-            .sort((a, b) => b.rate - a.rate);
-          if (ranked.length < 2) return '';
-          const top = ranked[0], bot = ranked[ranked.length - 1];
-          return `<span class="fact-title">${esc(top.area)}</span>`
-               + `<span class="fact-body">has <span class="fact-num">${(top.rate / bot.rate).toFixed(1)}×</span> the removal rate of ${esc(bot.area)}.</span>`;
+        text: () => {
+          const dc = window._districtComp;
+          if (!dc) return '';
+          return `<span class="fact-title">${esc(dc.top)}</span>`
+               + `<span class="fact-body">has <span class="fact-num">${dc.ratio.toFixed(1)}×</span> the removal rate of ${esc(dc.bot)}.</span>`;
         },
       },
       {
@@ -2734,14 +2710,12 @@
           return v.totalRemoved > 0 && (max / v.totalRemoved) >= 0.45;
         },
         text: (v) => {
-          const sorted = [...v.hits].sort((a, b) => (b._removed || 0) - (a._removed || 0)).slice(0, 3);
-          const totalW = sorted.reduce((s, p) => s + (p._removed || 1), 0);
-          let r = Math.random() * totalW, top = sorted[sorted.length - 1];
-          for (const p of sorted) { r -= (p._removed || 1); if (r <= 0) { top = p; break; } }
+          const sorted = [...v.hits].sort((a, b) => (b._removed || 0) - (a._removed || 0));
+          const top = sorted[0];
           const pct = top ? Math.round(((top._removed || 0) / v.totalRemoved) * 100) : null;
-          const hash = top.lat && top.lng ? `#@${top.lat.toFixed(5)},${top.lng.toFixed(5)},17` : '';
-          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(top.id)}" class="fact-venue-link"><span class="fact-strong">${esc(top.name)}</span></a></span>`
-               + `<span class="fact-body">steht für <span class="fact-num">${pct || 'die meisten'} %</span> der Entfernungen in ${esc(v.district)}.</span>`;
+          if (!pct || pct < 10) return '';
+          return `<span class="fact-title">Ein Betrieb steht für <span class="fact-num">${pct} %</span> der Entfernungen</span>`
+               + `<span class="fact-body">in ${esc(v.district)}.</span>`;
         },
       },
       {
@@ -2769,31 +2743,11 @@
           const adj = Math.round((pick.star_rating - pick._ratingDelta) * 10) / 10;
           const hash = pick.lat && pick.lng ? `#@${pick.lat.toFixed(5)},${pick.lng.toFixed(5)},17` : '';
           const n = pick._removed || pick.removed_min || 0;
-          return `<span class="fact-title"><a href="${hash}" data-pid="${esc(pick.id)}" class="fact-venue-link"><span class="fact-strong">${esc(pick.name)}</span></a> — <span class="fact-star">${pick.star_rating}★</span></span>`
-               + `<span class="fact-body">Wären alle <span class="fact-num">${n}+</span> entfernten Bewertungen 1★, fiele die Bewertung auf <span class="fact-star">${adj}★</span>.</span>`;
+          return `<span class="fact-title">Ein Betrieb in ${esc(v.district)} liegt bei <span class="fact-star">${pick.star_rating}★</span>.</span>`
+               + `<span class="fact-body">Wären seine <span class="fact-num">${n}+</span> entfernten Bewertungen alle 1★, fiele die Bewertung auf <span class="fact-star">${adj}★</span>.</span>`;
         },
       },
-      {
-        type: 'mss', sessionMax: 1,
-        condition: () => {
-          if (!_mssCityStats[2]) return false;
-          const t2 = _mssCityStats[2];
-          const otherRemovals = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.removals, 0);
-          const otherVenues   = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.venues, 0);
-          if (t2.venues < 5 || otherVenues < 5) return false;
-          const t2Rate    = t2.removals / t2.venues;
-          const otherRate = otherRemovals / otherVenues;
-          return otherRate > 0 && (t2Rate / otherRate) >= 1.5;
-        },
-        text: () => {
-          const t2 = _mssCityStats[2];
-          const otherRemovals = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.removals, 0);
-          const otherVenues   = Object.entries(_mssCityStats).filter(([k]) => +k !== 2).reduce((s,[,g]) => s + g.venues, 0);
-          const ratio = ((t2.removals / t2.venues) / (otherRemovals / otherVenues)).toFixed(1).replace('.', ',');
-          return `<span class="fact-title">Nicht die reichsten Kieze. Nicht die ärmsten.</span>`
-               + `<span class="fact-body">Berlins Mitte hat <span class="fact-num">${ratio}×</span> die Entfernungsrate.</span>`;
-        },
-      },
+
       {
         type: 'launder',
         condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
@@ -2806,32 +2760,16 @@
         },
       },
       {
-        type: 'district',
-        condition: (v) => {
-          if (v.citywide || v.zoom < AREA_ZOOM_MIN) return false;
-          if (v.hits.length < 10) return false;
-          const dHits = {}, dVen = {};
-          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
-          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
-          const ranked = Object.entries(dHits)
-            .filter(([a]) => (dVen[a] || 0) >= 5)
-            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
-            .sort((a, b) => b.rate - a.rate);
-          if (ranked.length < 2) return false;
-          return (ranked[0].rate / ranked[ranked.length - 1].rate) >= 1.5;
+        type: 'district', sessionMax: 1,
+        condition: () => {
+          if (!window._districtComp) return false;
+          return window._districtComp.ratio >= 1.5;
         },
-        text: (v) => {
-          const dHits = {}, dVen = {};
-          v.hits.forEach(p => { if (p.area) dHits[p.area] = (dHits[p.area] || 0) + 1; });
-          v.visible.forEach(p => { if (p.area) dVen[p.area] = (dVen[p.area] || 0) + 1; });
-          const ranked = Object.entries(dHits)
-            .filter(([a]) => (dVen[a] || 0) >= 5)
-            .map(([a, h]) => ({ area: a, rate: h / dVen[a] }))
-            .sort((a, b) => b.rate - a.rate);
-          if (ranked.length < 2) return '';
-          const top = ranked[0], bot = ranked[ranked.length - 1];
-          return `<span class="fact-title">${esc(top.area)}</span>`
-               + `<span class="fact-body">hat <span class="fact-num">${(top.rate / bot.rate).toFixed(1).replace('.', ',')}-fache</span> Entfernungsrate von ${esc(bot.area)}.</span>`;
+        text: () => {
+          const dc = window._districtComp;
+          if (!dc) return '';
+          return `<span class="fact-title">${esc(dc.top)}</span>`
+               + `<span class="fact-body">hat <span class="fact-num">${dc.ratio.toFixed(1).replace('.', ',')}×</span> die Entfernungsrate von ${esc(dc.bot)}.</span>`;
         },
       },
       {
@@ -2871,7 +2809,7 @@
     // weight: 3=high, 2=medium, 1=low — type shared with STAT_STORIES where overlap exists
     en: [
       {
-        type: 'netzDG', weight: 3,
+        type: 'netzDG', weight: 1,
         text: () => `<span class="fact-title">Germany's content laws give platforms 24 hours to act on flagged reviews.</span>`,
       },
 
@@ -2906,7 +2844,7 @@
     ],
     de: [
       {
-        type: 'netzDG', weight: 3,
+        type: 'netzDG', weight: 1,
         text: () => `<span class="fact-title">Deutschlands Inhaltsgesetze geben Plattformen 24 Stunden, um auf gemeldete Bewertungen zu reagieren.</span>`,
       },
 
@@ -3100,7 +3038,7 @@
     const COOLDOWN_PANS = 3;
 
     // #1: explicit priority ranking — highest-ranked true story wins, no random for top picks
-    const STORY_RANK = ['outlier','floor_concentration','launder','district','general_density','floor','mss','rating','calm'];
+    const STORY_RANK = ['outlier','floor_concentration','launder','district','general_density','floor','rating','calm'];
 
     // Build eligible pool respecting all filters
     const eligible = stories.filter(s => {
