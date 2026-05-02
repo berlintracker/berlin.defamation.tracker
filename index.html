@@ -1431,7 +1431,7 @@
     <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
   </div>
   <div id="modes">
-    <button class="mode-btn active" data-mode="impact">Rating Gap</button>
+    <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
     <button class="mode-btn" data-mode="removed">Most Removed</button>
     <button class="mode-btn" data-mode="rate">Removal Rate</button>
   </div>
@@ -2481,7 +2481,7 @@
 
       + (stars ? "<div style='margin-bottom:12px;'>"
           + "<div style='font-size:16px;'>" + stars + "</div>"
-          + (adjRating ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-top:4px;'>"
+          + (adjRating ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-top:4px;display:none;'>"
             + S.adjNote(adjRating) + "</div>" : "")
         + "</div>" : "")
 
