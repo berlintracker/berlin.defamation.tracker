@@ -1778,11 +1778,17 @@
     // Update about-modal numbers paragraph with live meta
     const abt = document.getElementById('about-numbers-text');
     if (abt && meta) {
-      const checked = (meta.total_checked || 0).toLocaleString('en');
-      const hits    = (meta.hit_count || 0).toLocaleString('en');
-      const removed = (meta.total_removed_median || meta.total_removed_min || 0).toLocaleString('en');
-      abt.innerHTML = `${checked} Berlin venues checked so far. ${hits} with recorded removals. `
-        + `At least ${removed} reviews removed — likely more, since Google stops disclosing above 250 per venue.`;
+      const loc     = currentLang === 'de' ? 'de' : 'en';
+      const checked = (meta.total_checked || 0).toLocaleString(loc);
+      const hits    = (meta.hit_count || 0).toLocaleString(loc);
+      const removed = (meta.total_removed_median || meta.total_removed_min || 0).toLocaleString(loc);
+      if (currentLang === 'de') {
+        abt.innerHTML = `${checked} Berliner Betriebe bisher geprüft. ${hits} mit erfassten Entfernungen. `
+          + `Mindestens ${removed} Bewertungen entfernt — wahrscheinlich mehr, da Google pro Betrieb maximal 250 offenlegt.`;
+      } else {
+        abt.innerHTML = `${checked} Berlin venues checked so far. ${hits} with recorded removals. `
+          + `At least ${removed} reviews removed — likely more, since Google stops disclosing above 250 per venue.`;
+      }
     }
     updateHandleMini();
   }
