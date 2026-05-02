@@ -2646,6 +2646,20 @@
       },
 
       {
+        type: 'mss', sessionMax: 1,
+        condition: () => {
+          const groups = Object.values(_mssCityStats).filter(g => g.venues >= 10);
+          return groups.length >= 3;
+        },
+        text: () => {
+          const groups = Object.entries(_mssCityStats).filter(([,g]) => g.venues >= 10);
+          const rates  = groups.map(([,g]) => g.removals / g.venues);
+          const lo = Math.round(Math.min(...rates)), hi = Math.round(Math.max(...rates));
+          return `<span class="fact-title">Not the wealthiest neighbourhoods. Not the most deprived.</span>`
+               + `<span class="fact-body">Across Berlin\'s social bands, venues average ${lo}–${hi} removals each. Social pressure doesn\'t predict removal activity.</span>`;
+        },
+      },
+      {
         type: 'launder',
         condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
         text: (v) => {
@@ -2748,6 +2762,20 @@
         },
       },
 
+      {
+        type: 'mss', sessionMax: 1,
+        condition: () => {
+          const groups = Object.values(_mssCityStats).filter(g => g.venues >= 10);
+          return groups.length >= 3;
+        },
+        text: () => {
+          const groups = Object.entries(_mssCityStats).filter(([,g]) => g.venues >= 10);
+          const rates  = groups.map(([,g]) => g.removals / g.venues);
+          const lo = Math.round(Math.min(...rates)), hi = Math.round(Math.max(...rates));
+          return `<span class="fact-title">Nicht die reichsten Kieze. Nicht die ärmsten.</span>`
+               + `<span class="fact-body">Über alle sozialen Lagen hinweg kommen Betriebe auf ${lo}–${hi} Entfernungen. Der soziale Druck sagt die Entfernungsrate kaum voraus.</span>`;
+        },
+      },
       {
         type: 'launder',
         condition: (v) => v.hits.filter(p => p.star_rating >= 4.5 && (p.removed_min || 0) >= 150).length >= 2,
@@ -3038,7 +3066,7 @@
     const COOLDOWN_PANS = 3;
 
     // #1: explicit priority ranking — highest-ranked true story wins, no random for top picks
-    const STORY_RANK = ['outlier','floor_concentration','launder','district','general_density','floor','rating','calm'];
+    const STORY_RANK = ['outlier','floor_concentration','launder','district','general_density','floor','mss','rating','calm'];
 
     // Build eligible pool respecting all filters
     const eligible = stories.filter(s => {
