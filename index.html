@@ -2372,12 +2372,15 @@
         mainStat   = p._rate != null
           ? (p._isFloor ? "≥" : "~") + p._rate + "% " + S.rmRate.toLowerCase()
           : S.rateUnk;
+        const _rmBracket = ' (' + (p.total_reviews || '?').toLocaleString()
+          + (currentLang === 'de' ? ' Bewertungen, ' : ' total reviews, ')
+          + rmDisp + (currentLang === 'de' ? ' entfernt)' : ' removed)');
         subStat    = p._rate != null
-          ? ratePhrase(p._rate, p._isFloor, S, p._perVisible)
+          ? ratePhrase(p._rate, p._isFloor, S, p._perVisible) + _rmBracket
           : "";
       } else if (currentMode === "rate") {
         countNum   = (p._isFloor ? "≥" : "~") + p._rate + "%";
-        countLabel = S.rate;
+        countLabel = S.rmRate;
         mainStat   = ratePhrase(p._rate, p._isFloor, S, p._perVisible);
         subStat    = rmDisp + " " + S.removedOf((p.total_reviews || "?").toLocaleString());
       } else if (currentMode === "impact") {
@@ -3269,8 +3272,8 @@
         cWrap.style.display = '';
         const lbl = document.getElementById('ob-numlabel-el');
         if (lbl) lbl.innerHTML = currentLang === 'de'
-          ? 'Google-Bewertungen aus Berliner Betrieben im letzten Jahr entfernt<span class="ob-counter-footer">Daten von Google offengelegt.</span>'
-          : 'Google reviews removed from Berlin venues in the last year<span class="ob-counter-footer">Data disclosed by Google.</span>';
+          ? 'Google-Bewertungen aus Berliner Betrieben <strong>im letzten Jahr</strong> entfernt<span class="ob-counter-footer">Daten von Google offengelegt.</span>'
+          : 'Google reviews removed from Berlin venues <strong>in the last year</strong><span class="ob-counter-footer">Data disclosed by Google.</span>';
         _obAnimCounter();
       } else {
         cWrap.style.display = 'none';
