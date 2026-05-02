@@ -2416,12 +2416,14 @@
     if (currentMode === "rate") {
       const note = document.createElement("div");
       note.className = "list-footnote";
+      note.style.display = "none";
       note.textContent = S.footnote;
       list.appendChild(note);
     }
     if (currentMode === "impact") {
       const note = document.createElement("div");
       note.className = "list-footnote";
+      note.style.display = "none";
       note.textContent = S.footnoteImpact;
       list.appendChild(note);
     }
