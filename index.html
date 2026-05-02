@@ -1432,8 +1432,8 @@
   </div>
   <div id="modes">
     <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
+    <button class="mode-btn active" data-mode="rate">Removal Rate</button>
     <button class="mode-btn" data-mode="removed">Most Removed</button>
-    <button class="mode-btn" data-mode="rate">Removal Rate</button>
   </div>
   <div id="list-header" style="padding:16px 28px 8px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Top 10 in current view</div>
   <div id="list"></div>
@@ -1917,7 +1917,7 @@
   let   _obCounterTimer = null;
 
   let map, allData = [], markerMap = {}, activeInfoWindow = null, activeItem = null;
-  let currentMode = "impact";
+  let currentMode = "rate";
   let clusterer   = null;
   let activeSev   = null;
   let activeVenueType = null;
@@ -2504,7 +2504,7 @@
         + "font-style:italic;'>" + S.floorNote + "</div>" : "")
 
       + (peerLine ? "<div style='font-size:11px;color:" + C_MUTED + ";margin-bottom:12px;"
-          + "padding:8px 10px;background:" + C_TINT + ";border-radius:6px;border:1px solid " + C_RULE + ";'>" + peerLine + "</div>"
+          + "padding:8px 10px;background:" + C_TINT + ";border-radius:6px;border:1px solid " + C_RULE + ";display:none;'>" + peerLine + "</div>"
         : "")
 
       + "<a href='" + p.url + "' target='_blank' "
