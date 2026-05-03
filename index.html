@@ -1845,69 +1845,142 @@
   // Categories that should pass through in English with their proper name
   const PASSTHROUGH_EN = ['gay bar', 'gay club', 'night club', 'nightclub'];
 
+  // Flat EN translation table — display only, filters use raw p.category strings
+  const CAT_EN = {
+    'Afghanisches Restaurant':'Afghan Restaurant','Afrikanisches Restaurant':'African Restaurant',
+    'American restaurant':'American Restaurant','Amerikanisches Restaurant':'American Restaurant',
+    'Antiquitätengeschäft':'Antique Shop','Arabisches Restaurant':'Arabic Restaurant',
+    'Argentinisches Restaurant':'Argentine Restaurant','Asiatisches Restaurant':'Asian Restaurant',
+    'Aussichtsplattform':'Observation Deck','Austrian restaurant':'Austrian Restaurant',
+    'Aziatisch fusion-restaurant':'Asian Fusion Restaurant','Bakery':'Bakery',
+    'Ballettschule':'Ballet School','Bar':'Bar','Bar & Grillrestaurant':'Bar & Grill',
+    'Bayerisches Restaurant':'Bavarian Restaurant','Biergarten':'Beer Garden',
+    'Billardhalle':'Billiard Hall','Bistro':'Bistro','Bowlingbahn':'Bowling Alley',
+    'Brasserie':'Brasserie','Brauerei':'Brewery','Brauereigaststätte':'Brewery Pub',
+    'Brunch-Restaurant':'Brunch Restaurant','Burgerrestaurant':'Burger Restaurant',
+    'Burrito-Restaurant':'Burrito Restaurant','Burrito-restaurant':'Burrito Restaurant',
+    'Bäckerei':'Bakery','Café':'Café','Café mit Frucht- und Süßspeisen':'Dessert Café',
+    'Candy store':'Candy Store','Catering':'Catering',
+    'Chicken-Wings-Restaurant':'Chicken Wings Restaurant',
+    'Chinese restaurant':'Chinese Restaurant','Chinesisches Nudelrestaurant':'Chinese Noodle Restaurant',
+    'Chinesisches Restaurant':'Chinese Restaurant','Cocktailbar':'Cocktail Bar',
+    'Coffee shop':'Coffee Shop','Coffeeshop':'Coffee Shop','Comicladen':'Comic Book Store',
+    'Confectionery store':'Confectionery','Couscousrestaurant':'Couscous Restaurant',
+    'Day Spa':'Day Spa','Desserterie':'Dessert Shop','Dessertrestaurant':'Dessert Restaurant',
+    'Deutsches Restaurant':'German Restaurant','Digitaldruckerei':'Print Shop','Diner':'Diner',
+    'Dinner-Theater':'Dinner Theatre','Diskothek':'Nightclub',
+    'Doner kebab restaurant':'Döner Restaurant','Döner-Restaurant':'Döner Restaurant',
+    'Eiscafé':'Ice Cream Café','Eisdiele':'Ice Cream Shop','Erotische Massagen':'Erotic Massage',
+    'Fachhandel für Sport- und Fitnessgeräte':'Sports Equipment Shop',
+    'Fahrradgeschäft':'Bike Shop','Fahrradwerkstatt':'Bike Workshop',
+    'Fahrschule':'Driving School','Falafel-Restaurant':'Falafel Restaurant',
+    'Fast food restaurant':'Fast Food','Fast-Food-Restaurant':'Fast Food',
+    'Feinkostgeschäft':'Deli','Fensteranbieter':'Window Supplier',
+    'Fischrestaurant':'Fish Restaurant','Fitnessraum':'Gym','Fitnessstudio':'Gym',
+    'Fleischerei':'Butcher','Frans steakhouse restaurant':'French Steakhouse',
+    'Französisches Restaurant':'French Restaurant','Freizeitzentrum':'Leisure Centre',
+    'French restaurant':'French Restaurant','Friseursalon':'Hair Salon',
+    'Frühstückslokal':'Breakfast Spot','Gay Bar':'Gay Bar',
+    'Gemischtwarenladen':'General Store','Georgisches Restaurant':'Georgian Restaurant',
+    'Geschäft':'Shop','Geschäft für indische Lebensmittel':'Indian Grocery',
+    'Glutenfreies Restaurant':'Gluten-Free Restaurant','Gourmetrestaurant':'Gourmet Restaurant',
+    'Greek restaurant':'Greek Restaurant','Griechisches Restaurant':'Greek Restaurant',
+    'Grillrestaurant':'Grill Restaurant','Halalrestaurant':'Halal Restaurant',
+    'Hamburger restaurant':'Burger Restaurant','Hochzeitsräumlichkeit':'Wedding Venue',
+    'Hookah bar':'Hookah Bar','Hotel':'Hotel',
+    'Hähnchenimbiss':'Fried Chicken Takeaway','Hähnchenrestaurant':'Chicken Restaurant',
+    'Imbiss':'Takeaway','Indisches Restaurant':'Indian Restaurant',
+    'Indonesisches Restaurant':'Indonesian Restaurant','Israelisches Restaurant':'Israeli Restaurant',
+    'Italian restaurant':'Italian Restaurant','Italienisches Restaurant':'Italian Restaurant',
+    'Jamaikanisches Restaurant':'Jamaican Restaurant','Japanese restaurant':'Japanese Restaurant',
+    'Japanisches Restaurant':'Japanese Restaurant','Jazz-Club':'Jazz Club',
+    'Juweliergeschäft':'Jewellery Shop','Kaffeegeschäft':'Coffee Shop',
+    'Kaffeerösterei':'Coffee Roastery','Kamerageschäft':'Camera Shop',
+    'Kampfsportschule':'Martial Arts School','Karaokebar':'Karaoke Bar',
+    'Katzencafé':'Cat Café','Kaukasisches Restaurant':'Caucasian Restaurant',
+    'Kebab shop':'Kebab Shop','Kebabimbiss':'Kebab Takeaway','Keksgeschäft':'Cookie Shop',
+    'Kindercafé':'Children\'s Café','Kino':'Cinema','Kletterhalle':'Climbing Gym',
+    'Kneipe':'Pub','Konditorei':'Patisserie','Korean restaurant':'Korean Restaurant',
+    'Koreanisches Grillrestaurant':'Korean BBQ Restaurant',
+    'Koreanisches Restaurant':'Korean Restaurant','Kroatisches Restaurant':'Croatian Restaurant',
+    'Kubanisches Restaurant':'Cuban Restaurant','Kunst-Café':'Art Café',
+    'Kunstgalerie':'Art Gallery','Laser-Haarentfernungs-Service':'Laser Hair Removal',
+    'Lasergamezentrum':'Laser Tag','Lateinamerikanisches Restaurant':'Latin American Restaurant',
+    'Lebanese restaurant':'Lebanese Restaurant','Lebensmittel-Lieferservice':'Food Delivery',
+    'Lebensmittelhändler':'Grocery Store','Libanesisches Restaurant':'Lebanese Restaurant',
+    'Loungebar':'Lounge Bar','Massagezentrum':'Massage Centre','Masseur':'Massage',
+    'Mediterranes Restaurant':'Mediterranean Restaurant',
+    'Meeresfrüchte-Restaurant':'Seafood Restaurant',
+    'Mexikanischer Supermarkt':'Mexican Supermarket',
+    'Mexikanisches Restaurant':'Mexican Restaurant',
+    'Middle Eastern restaurant':'Middle Eastern Restaurant',
+    'Mittagsrestaurant':'Lunch Restaurant','Mobiltelefongeschäft':'Phone Shop',
+    'Museum':'Museum','Museum für moderne Kunst':'Modern Art Museum',
+    'Musikclub':'Music Club','Nachtclub':'Nightclub','Nagelstudio':'Nail Studio',
+    'Nahost-Restaurant':'Middle Eastern Restaurant',
+    'Neapolitanisches Restaurant':'Neapolitan Restaurant',
+    'Nepalesisches Restaurant':'Nepali Restaurant','Night club':'Nightclub',
+    'Noodle shop':'Noodle Shop','Orientalisches Restaurant':'Oriental Restaurant',
+    'Osteopath':'Osteopath','Osteuropäisches Restaurant':'Eastern European Restaurant',
+    'Pakistanisches Restaurant':'Pakistani Restaurant','Pastry shop':'Patisserie',
+    'Patisserie':'Patisserie','Persisches Restaurant':'Persian Restaurant',
+    'Peruanisches Restaurant':'Peruvian Restaurant','Physiotherapeut':'Physiotherapist',
+    'Physiotherapiezentrum':'Physiotherapy Centre','Pilates-Studio':'Pilates Studio',
+    'Pizza restaurant':'Pizza Restaurant','Pizza takeaway':'Pizza Takeaway',
+    'Pizza-Lieferdienst':'Pizza Delivery','Pizzaservice':'Pizza Restaurant','Pizzeria':'Pizzeria',
+    'Plattenladen':'Record Shop','Portugees restaurant':'Portuguese Restaurant',
+    'Portugiesisches Restaurant':'Portuguese Restaurant','Pub':'Pub',
+    'Ramen-Restaurant':'Ramen Restaurant','Restaurant':'Restaurant',
+    'Restaurant für Fleischgerichte':'Meat Restaurant',
+    'Restaurant mit Essen zum Mitnehmen':'Restaurant with Takeaway',
+    'Restaurant mit Fusionsküche':'Fusion Restaurant',
+    'Restaurant mit asiatischem Fondue (Feuertopf)':'Hot Pot Restaurant',
+    'Restaurant mit asiatischer Fusionsküche':'Asian Fusion Restaurant',
+    'Restaurant mit europäischer Küche':'European Restaurant',
+    'Restaurant mit moderner europäischer Küche':'Modern European Restaurant',
+    'Restaurant mit singapurischer Küche':'Singaporean Restaurant',
+    'Restaurant mit westlicher Küche':'Western Restaurant',
+    'Restaurant voor vleesgerechten':'Meat Restaurant',
+    'Russisches Restaurant':'Russian Restaurant','Saftbar':'Juice Bar',
+    'Sandwichladen':'Sandwich Shop','Sauna':'Sauna',
+    'Schawarma-Restaurant':'Shawarma Restaurant','Schlüsseldienst':'Locksmith',
+    'Schokoladencafé':'Chocolate Café','Schwedisches Restaurant':'Swedish Restaurant',
+    'Schweizerisches Restaurant':'Swiss Restaurant','Schönheitssalon':'Beauty Salon',
+    'Selbstverteidigungsschule':'Self-Defence School','Shisha-Bar':'Shisha Bar',
+    'Sichuanisches Restaurant':'Sichuan Restaurant','Snack bar':'Snack Bar','Spa':'Spa',
+    'Spanisches Restaurant':'Spanish Restaurant','Spielhalle':'Amusement Arcade',
+    'Spielkasino':'Casino','Sportsbar':'Sports Bar','Sportschule':'Sports School',
+    'Steakhaus':'Steakhouse','Steakhouse':'Steakhouse','Stripklub':'Strip Club',
+    'Studentenwohnservice':'Student Housing','Sundanesisches Restaurant':'Sundanese Restaurant',
+    'Supermarkt':'Supermarket','Sushi Takeaway':'Sushi Takeaway',
+    'Sushi restaurant':'Sushi Restaurant','Sushi takeaway':'Sushi Takeaway',
+    'Sushi-Restaurant':'Sushi Restaurant','Swedish restaurant':'Swedish Restaurant',
+    'Syrisches Restaurant':'Syrian Restaurant','Südindisches Restaurant':'South Indian Restaurant',
+    'Süßigkeiten- und Desserbuffet':'Desserts & Sweets','Süßwarengeschäft':'Sweet Shop',
+    'Taiwanees restaurant':'Taiwanese Restaurant','Tankstelle':'Petrol Station',
+    'Tanzschule':'Dance School','Tapas-Restaurant':'Tapas Restaurant','Tapasbar':'Tapas Bar',
+    'Teeladen':'Tea Shop','Teestube':'Tea Room','Thai-Massage':'Thai Massage',
+    'Thailändisches Restaurant':'Thai Restaurant','Thaise massage':'Thai Massage',
+    'Theater':'Theatre','Tonstudio':'Recording Studio','Tortenbäckerei':'Cake Bakery',
+    'Tortengeschäft':'Cake Shop','Tunesisches Restaurant':'Tunisian Restaurant',
+    'Turkish restaurant':'Turkish Restaurant','Türkisches Restaurant':'Turkish Restaurant',
+    'Vegan restaurant':'Vegan Restaurant','Veganes Restaurant':'Vegan Restaurant',
+    'Vegetarisches Restaurant':'Vegetarian Restaurant',
+    'Veranstaltungsort für Livemusik':'Live Music Venue','Veranstaltungsraum':'Event Space',
+    'Veranstaltungsstätte':'Event Venue','Vergnügungszentrum':'Entertainment Centre',
+    'Vietnamese restaurant':'Vietnamese Restaurant',
+    'Vietnamesisches Restaurant':'Vietnamese Restaurant',
+    'Weinbar':'Wine Bar','Weinhandlung':'Wine Shop','Weinstube':'Wine Bar',
+    'Wellnesszentrum':'Wellness Centre','Wine store':'Wine Shop',
+    'Wokrestaurant':'Wok Restaurant','Yoga-Studio':'Yoga Studio',
+    'Zuid-Indiaas restaurant':'South Indian Restaurant',
+    'Österreichisches Restaurant':'Austrian Restaurant',
+  };
+
   function categoryLabel(cat, lang) {
     if (!cat) return lang === 'de' ? 'Betriebe' : 'Venues';
     if (lang === 'de') return cat;
-    const l = cat.toLowerCase();
-
-    // Proper-noun categories — keep as-is
-    for (const pt of PASSTHROUGH_EN) {
-      if (l.includes(pt)) return cat;
-    }
-
-    // Cuisine-specific restaurants (e.g. "Italienisches Restaurant" → "Italian restaurants")
-    for (const [de, en] of CUISINE_MAP) {
-      if (l.includes(de)) {
-        if (l.includes('restaurant')) return en + ' Restaurants';
-        if (l.includes('imbiss') || l.includes('küche')) return en + ' Restaurants';
-        return en + ' Venues';
-      }
-    }
-
-    // Venue type fallbacks
-    if (l.includes('restaurant'))              return 'Restaurants';
-    if (l.includes('steakhaus') || l.includes('steakhouse') || l.includes('grillhaus')) return 'Restaurants';
-    if (l.includes('bistro') || l.includes('brasserie') || l.includes('diner')) return 'Restaurants';
-    if (l.includes('bar') || l.includes('lounge') || l.includes('kneipe') || l.includes('weinstube')) return 'Bars';
-    if (l.includes('café') || l.includes('cafe') || l.includes('kaffee')) return 'Cafés';
-    if (l.includes('bäckerei') || l.includes('backerei'))  return 'Bakeries';
-    if (l.includes('konditorei'))              return 'Patisseries';
-    if (l.includes('eisdiele'))                return 'Ice Cream Shops';
-    if (l.includes('imbiss') || l.includes('schnellimbiss')) return 'Fast Food Venues';
-    if (l.includes('pizza') || l.includes('pizzeria')) return 'Pizza Places';
-    if (l.includes('sushi'))                   return 'Sushi Restaurants';
-    if (l.includes('biergarten'))              return 'Beer Gardens';
-    if (l.includes('brauerei'))                return 'Breweries';
-    if (l.includes('hotel'))                   return 'Hotels';
-    if (l.includes('fitness') || l.includes('gym') || l.includes('crossfit') || l.includes('pilates') || l.includes('yoga')) return 'Gyms & Studios';
-    if (l.includes('kampfsport') || l.includes('boxclub') || l.includes('sportschule') || l.includes('kletterhalle') || l.includes('tanzschule')) return 'Martial Arts';
-    if (l.includes('museum') || l.includes('galerie') || l.includes('kunsthalle')) return 'Museums & Galleries';
-    if (l.includes('nachtclub') || l.includes('diskothek') || l.includes('nightclub') || l.includes('musikclub') || l.includes('stripklub') || l.includes('strip club')) return 'Clubs';
-    if (l.includes('konzertsaal') || l.includes('konzerthaus') || l.includes('veranstaltungsort für livemusik')) return 'Music Venues';
-    if (l.includes('veranstaltungsstätte') || l.includes('veranstaltungsort')) return 'Event Spaces';
-    if (l.includes('theater') || l.includes('theatre')) return 'Theatres';
-    if (l.includes('kino')) return 'Cinemas';
-    if (l.includes('spielhalle') || l.includes('spielcasino') || l.includes('bowling') || l.includes('billard')) return 'Gaming';
-    // Additional mappings from observed data
-    if (l.includes('frühstück'))               return 'Breakfast Spots';
-    if (l === 'coffeeshop' || l === 'coffee shop') return 'Cafés';
-    if (l.includes('supermarkt') || l === 'lebensmittelhändler' || l === 'gemischtwarenladen') return 'Supermarkets';
-    if (l.includes('patisserie') || l.includes('tortengeschäft') || l.includes('pastry') || l.includes('konditor')) return 'Patisseries';
-    if (l.includes('fleischerei') || l.includes('metzgerei')) return 'Butchers';
-    if (l.includes('physiotherap') || l.includes('osteopath') || l.includes('massag') || l.includes('wellnesszentrum') || l === 'day spa') return 'Wellness';
-    if (l.includes('catering')) return 'Catering';
-    if (l.includes('freizeit') || l.includes('vergnügungs') || l.includes('lasergame')) return 'Leisure';
-    if (l === 'night club' || l.includes('jazz-club')) return 'Clubs';
-    if (l.includes('süßigkeiten') || l.includes('süßwaren') || l.includes('keksgeschäft') || l.includes('dessert') || l === 'candy store' || l === 'confectionery store') return 'Desserts & Sweets';
-    if (l.includes('weinhandlung') || l === 'wine store') return 'Wine Shops';
-    if (l.includes('fahrrad')) return 'Bike Shops';
-    if (l.includes('sandwich') || l.includes('sandwichladen')) return 'Sandwich Shops';
-    if (l.includes('schönheitssalon')) return 'Beauty';
-    if (l.includes('hochzeits')) return 'Event Spaces';
-    if (l.includes('tankstelle')) return 'Petrol Stations';
-    if (l.includes('aussichts')) return 'Attractions';
-    if (l.includes('druck')) return 'Print Shops';
-    return lang === 'de' ? cat : '';
+    return CAT_EN[cat] || 'Venues';
   }
 
   // ── Tiers ──────────────────────────────────────────────────
