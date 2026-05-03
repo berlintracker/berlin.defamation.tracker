@@ -1,10 +1,10 @@
 {
-  "last_updated": "2026-05-02T17:08:13.414862+00:00",
-  "total_places_queued": 16541,
-  "total_checked": 16140,
-  "hit_count": 1524,
-  "total_removed_min": 48419,
-  "total_removed_median": 63593,
+  "last_updated": "2026-05-03T10:19:07.568105+00:00",
+  "total_places_queued": 16987,
+  "total_checked": 16584,
+  "hit_count": 1564,
+  "total_removed_min": 49433,
+  "total_removed_median": 65003,
   "floor_count": 44,
   "area_stats": {
     "Adlershof": {
@@ -48,8 +48,8 @@
       "hits": 1
     },
     "Charlottenburg": {
-      "checked": 1751,
-      "hits": 176
+      "checked": 1775,
+      "hits": 179
     },
     "Charlottenburg-Nord": {
       "checked": 28,
@@ -80,8 +80,8 @@
       "hits": 1
     },
     "Friedrichshain": {
-      "checked": 1428,
-      "hits": 156
+      "checked": 1525,
+      "hits": 165
     },
     "Frohnau": {
       "checked": 1,
@@ -152,8 +152,8 @@
       "hits": 0
     },
     "Kreuzberg": {
-      "checked": 1941,
-      "hits": 151
+      "checked": 1998,
+      "hits": 152
     },
     "Köpenick": {
       "checked": 6,
@@ -164,7 +164,7 @@
       "hits": 1
     },
     "Lichtenberg": {
-      "checked": 31,
+      "checked": 38,
       "hits": 1
     },
     "Lichtenrade": {
@@ -172,7 +172,7 @@
       "hits": 1
     },
     "Lichterfelde": {
-      "checked": 14,
+      "checked": 15,
       "hits": 2
     },
     "Lübars": {
@@ -180,8 +180,8 @@
       "hits": 1
     },
     "Mariendorf": {
-      "checked": 63,
-      "hits": 10
+      "checked": 64,
+      "hits": 11
     },
     "Marienfelde": {
       "checked": 3,
@@ -192,11 +192,11 @@
       "hits": 1
     },
     "Mitte": {
-      "checked": 1989,
-      "hits": 236
+      "checked": 2040,
+      "hits": 240
     },
     "Moabit": {
-      "checked": 873,
+      "checked": 889,
       "hits": 55
     },
     "Märkisches Viertel": {
@@ -208,8 +208,8 @@
       "hits": 2
     },
     "Neukölln": {
-      "checked": 1591,
-      "hits": 137
+      "checked": 1604,
+      "hits": 139
     },
     "Niederschöneweide": {
       "checked": 6,
@@ -236,12 +236,12 @@
       "hits": 0
     },
     "Prenzlauer Berg": {
-      "checked": 1312,
+      "checked": 1343,
       "hits": 141
     },
     "Reinickendorf": {
-      "checked": 324,
-      "hits": 19
+      "checked": 251,
+      "hits": 13
     },
     "Rosenthal": {
       "checked": 1,
@@ -264,48 +264,52 @@
       "hits": 0
     },
     "Schöneberg": {
-      "checked": 991,
-      "hits": 112
+      "checked": 1046,
+      "hits": 122
     },
     "Siemensstadt": {
       "checked": 12,
       "hits": 1
     },
     "Spandau": {
-      "checked": 8,
-      "hits": 4
+      "checked": 12,
+      "hits": 6
     },
     "Stadtrandsiedlung Malchow": {
       "checked": 4,
       "hits": 0
     },
     "Steglitz": {
-      "checked": 60,
-      "hits": 8
+      "checked": 89,
+      "hits": 11
     },
     "Tegel": {
-      "checked": 131,
-      "hits": 15
+      "checked": 160,
+      "hits": 16
     },
     "Tempelhof": {
-      "checked": 309,
-      "hits": 19
+      "checked": 332,
+      "hits": 20
     },
     "Tiergarten": {
       "checked": 304,
       "hits": 42
+    },
+    "Treptow": {
+      "checked": 3,
+      "hits": 1
     },
     "Waidmannslust": {
       "checked": 17,
       "hits": 1
     },
     "Wedding": {
-      "checked": 675,
-      "hits": 42
+      "checked": 717,
+      "hits": 47
     },
-    "Weißensee": {
-      "checked": 355,
-      "hits": 16
+    "Weissensee": {
+      "checked": 373,
+      "hits": 17
     },
     "Westend": {
       "checked": 68,
@@ -320,7 +324,7 @@
       "hits": 1
     },
     "Wilmersdorf": {
-      "checked": 416,
+      "checked": 423,
       "hits": 42
     },
     "Wittenau": {
@@ -328,8 +332,8 @@
       "hits": 8
     },
     "Zehlendorf": {
-      "checked": 3,
-      "hits": 0
+      "checked": 12,
+      "hits": 2
     }
   }
 }
