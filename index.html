@@ -1907,7 +1907,7 @@
     if (l.includes('tankstelle')) return 'Petrol Stations';
     if (l.includes('aussichts')) return 'Attractions';
     if (l.includes('druck')) return 'Print Shops';
-    return cat;
+    return lang === 'de' ? cat : '';
   }
 
   // ── Tiers ──────────────────────────────────────────────────
@@ -2439,7 +2439,7 @@
         "<div class='li-rank'>" + String(i + 1).padStart(2, "0") + "</div>"
         + "<div class='li-main'>"
           + "<div class='li-name'>" + p.name + "</div>"
-          + "<div class='li-area'>" + p.area + (p.category ? " · " + (currentLang === 'de' ? p.category : categoryLabel(p.category, 'en')) : "") + "</div>"
+          + "<div class='li-area'>" + p.area + (p.category ? (() => { const _cl = currentLang === 'de' ? p.category : categoryLabel(p.category, 'en'); return _cl ? ' · ' + _cl : ''; })() : "") + "</div>"
           + "<div class='li-stat'>" + mainStat + "</div>"
           + (subStat ? "<div class='li-sub'>" + subStat + "</div>" : "")
         + "</div>"
