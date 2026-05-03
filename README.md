@@ -12,7 +12,7 @@ This project collects those disclosures across Berlin and presents them on a map
 
 ## Current dataset
 
-Live numbers in [`meta.json`](./meta.json). At time of writing: ~11,300 venues checked, ~1,400 with at least one disclosed removal, ~45,000 reviews removed across Berlin. 42 venues sit at the 250+ disclosure cap; their actual totals are not disclosed by Google and are unknown.
+Live numbers in [`meta.json`](./meta.json). At time of writing: ~16,600 venues checked, ~1,560 with at least one disclosed removal, ~65,000 reviews removed across Berlin. 44 venues sit at the 250+ disclosure cap; their actual totals are not disclosed by Google and are unknown.
 
 ## What this repo contains
 
