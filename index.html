@@ -1874,7 +1874,7 @@
     if (l.includes('konditorei'))              return 'Patisseries';
     if (l.includes('eisdiele'))                return 'Ice Cream Shops';
     if (l.includes('imbiss') || l.includes('schnellimbiss')) return 'Fast Food Venues';
-    if (l.includes('pizza'))                   return 'Pizza Places';
+    if (l.includes('pizza') || l.includes('pizzeria')) return 'Pizza Places';
     if (l.includes('sushi'))                   return 'Sushi Restaurants';
     if (l.includes('biergarten'))              return 'Beer Gardens';
     if (l.includes('brauerei'))                return 'Breweries';
@@ -1888,7 +1888,26 @@
     if (l.includes('theater') || l.includes('theatre')) return 'Theatres';
     if (l.includes('kino')) return 'Cinemas';
     if (l.includes('spielhalle') || l.includes('spielcasino') || l.includes('bowling') || l.includes('billard')) return 'Gaming';
-    return 'Venues';
+    // Additional mappings from observed data
+    if (l.includes('frühstück'))               return 'Breakfast Spots';
+    if (l === 'coffeeshop' || l === 'coffee shop') return 'Cafés';
+    if (l.includes('supermarkt') || l === 'lebensmittelhändler' || l === 'gemischtwarenladen') return 'Supermarkets';
+    if (l.includes('patisserie') || l.includes('tortengeschäft') || l.includes('pastry') || l.includes('konditor')) return 'Patisseries';
+    if (l.includes('fleischerei') || l.includes('metzgerei')) return 'Butchers';
+    if (l.includes('physiotherap') || l.includes('osteopath') || l.includes('massag') || l.includes('wellnesszentrum') || l === 'day spa') return 'Wellness';
+    if (l.includes('catering')) return 'Catering';
+    if (l.includes('freizeit') || l.includes('vergnügungs') || l.includes('lasergame')) return 'Leisure';
+    if (l === 'night club' || l.includes('jazz-club')) return 'Clubs';
+    if (l.includes('süßigkeiten') || l.includes('süßwaren') || l.includes('keksgeschäft') || l.includes('dessert') || l === 'candy store' || l === 'confectionery store') return 'Desserts & Sweets';
+    if (l.includes('weinhandlung') || l === 'wine store') return 'Wine Shops';
+    if (l.includes('fahrrad')) return 'Bike Shops';
+    if (l.includes('sandwich') || l.includes('sandwichladen')) return 'Sandwich Shops';
+    if (l.includes('schönheitssalon')) return 'Beauty';
+    if (l.includes('hochzeits')) return 'Event Spaces';
+    if (l.includes('tankstelle')) return 'Petrol Stations';
+    if (l.includes('aussichts')) return 'Attractions';
+    if (l.includes('druck')) return 'Print Shops';
+    return cat;
   }
 
   // ── Tiers ──────────────────────────────────────────────────
