@@ -62,6 +62,8 @@ The same caveat applies in reverse: a venue may have been the target of fake or 
 
 Every figure on this site originates from public disclosures made by Google on its own Maps platform. We arrange that data geographically. No private data is collected, stored, or displayed. No information is derived from sources other than Google's own disclosures and the public MSS dataset described above.
 
+Map tiles are provided by [CARTO](https://carto.com/) under their free tier, using OpenStreetMap data. Map tiles © CARTO; © OpenStreetMap contributors.
+
 ## Corrections and right of reply
 
 We aim to represent Google's disclosures accurately. If a venue, individual, or other party believes their data is incorrectly represented, contact us via the site. Verifiable corrections are made promptly.

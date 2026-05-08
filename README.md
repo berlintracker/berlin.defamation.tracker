@@ -18,7 +18,7 @@ Live numbers in [`meta.json`](./meta.json). At time of writing: ~16,600 venues c
 
 | File | |
 |---|---|
-| `index.html` | Map (Leaflet + OSM tiles) |
+| `index.html` | Map (Leaflet + CARTO/OSM tiles) |
 | `results.json` | Venues with at least one disclosed removal |
 | `checked.json` | All checked venues, used for site search |
 | `meta.json` | Summary statistics |
@@ -47,6 +47,8 @@ If a venue believes its data is incorrectly represented, please contact us via t
 ## Credits
 
 Scraping approach informed by [mb4umi/maps-deleted-reviews](https://github.com/mb4umi/maps-deleted-reviews).
+
+Map tiles © [CARTO](https://carto.com/), © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
 
 ## Legal
 
