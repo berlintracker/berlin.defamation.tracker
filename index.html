@@ -1291,12 +1291,12 @@
       #venue-filters { display: none; }
       #map-key { display: none; }
 
-      /* About button — bottom right above handle */
-      #about-btn { top: auto; bottom: calc(144px + 8px); right: 12px; }
+      /* About button — top right, below search bar */
+      #about-btn { top: calc(12px + 48px + 10px); bottom: auto; right: 12px; font-size: 11px; padding: 5px 9px; }
 
       #about-modal { padding: 28px 24px 24px; }
 
-      /* ── Sheet content: scrollable — search + filters sticky at top ── */
+      /* ── Sheet content: just the list, scrolls freely ── */
       .sheet-content {
         overflow-y: auto;
         overflow-x: hidden;
@@ -1305,97 +1305,155 @@
         overscroll-behavior: contain;
       }
 
-      /* On mobile, hide the title/desc but keep sidebar-header as a block so topbar is visible */
-      #sidebar-header { padding: 0; border-bottom: none; }
-      #sidebar-header h1,
-      #sidebar-header > p,
-      #sidebar-disclaimer { display: none; }
+      /* Desktop header/title — hidden on mobile (controls live on the map) */
+      #sidebar-header { display: none; }
 
-      /* ── Sidebar topbar: sticky search row at top of scroll area ── */
-      #sidebar-topbar {
-        display: flex !important;
-        align-items: center;
-        padding: 10px 14px;
-        background: var(--bg-main);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        border-bottom: 1px solid var(--rule);
-        margin-bottom: 0 !important;
-      }
-      /* Hide lang-switch on mobile — search fills full width */
-      #sidebar-topbar .lang-switch { display: none; }
-      #venue-search-wrap { flex: 1; padding: 0; position: relative; }
-      #venue-search-input { font-size: 14px; padding: 10px 12px 10px 34px; border-radius: 10px; }
-
-      /* ── Persistent venue type pills — sticky below search ── */
-      #mob-type-panel {
-        display: block;
-        position: sticky;
-        top: 57px; /* search row height */
-        z-index: 9;
-        background: var(--bg-main);
-        border-bottom: 1px solid var(--rule);
-      }
-      #mob-type-scroll {
-        display: flex;
-        gap: 8px;
-        padding: 8px 14px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-      #mob-type-scroll::-webkit-scrollbar { display: none; }
-      #mob-type-scroll .venue-pill { flex-shrink: 0; font-size: 12px; padding: 5px 10px 5px 8px; }
-
-      /* ── Persistent severity filter — sticky below venue pills ── */
-      #mob-sev-panel {
-        display: block;
-        position: sticky;
-        top: 106px; /* search + venue pills height */
-        z-index: 8;
-        background: var(--bg-main);
-        padding: 4px 14px 6px;
-        border-bottom: 1px solid var(--rule);
-      }
-      .mob-sev-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 5px 6px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background .15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .mob-sev-row:hover { background: rgba(0,0,0,.04); }
-      .mob-sev-row.active { background: rgba(196,154,58,0.10); color: var(--accent); }
-      .mob-sev-label-text { font-size: 12px; font-weight: 500; flex: 1; }
-      .mob-sev-range { font-size: 11px; color: var(--muted); }
-      .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
-
-      /* Mode tabs: full width */
+      /* Mode tabs */
       #modes { border-top: none; }
 
       /* Footer disclosure */
       .sheet-footer {
-        padding: 16px 28px 24px;
+        padding: 16px 24px 24px;
         font-size: 11px;
         color: var(--muted);
         text-align: center;
         border-top: 1px solid var(--rule);
       }
+
+      /* ── Search: float over map at top ── */
+      /* #venue-search-wrap lives inside #sidebar but position:fixed escapes it */
+      #venue-search-wrap {
+        position: fixed !important;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        z-index: 150;
+        background: rgba(250,249,246,.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--rule);
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0,0,0,.16);
+        padding: 0 !important;
+        flex: none !important;
+      }
+      #venue-search-input {
+        font-size: 15px;
+        padding: 13px 14px 13px 38px;
+        border: none !important;
+        background: transparent !important;
+        border-radius: 12px;
+        width: 100%;
+      }
+      #venue-search-input:focus { background: transparent !important; }
+      #venue-search-icon { left: 13px; width: 15px; height: 15px; }
+      #venue-search-dropdown {
+        border-radius: 0 0 12px 12px;
+        top: calc(100% + 0px);
+        border-top: 1px solid var(--rule);
+      }
+
+      /* ── Mobile map overlays: filter buttons bottom-left / bottom-right ── */
+      #mob-map-overlays {
+        display: flex;
+        position: fixed;
+        bottom: calc(72px + 14px); /* just above collapsed handle */
+        left: 0;
+        right: 0;
+        padding: 0 14px;
+        justify-content: space-between;
+        align-items: flex-end;
+        z-index: 120;
+        pointer-events: none;
+      }
+
+      #mob-venue-wrap, #mob-sev-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        pointer-events: all;
+      }
+      #mob-sev-wrap { align-items: flex-end; }
+
+      #mob-filter-btn, #mob-removals-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 14px;
+        background: rgba(250,249,246,.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--rule);
+        border-radius: 20px;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink);
+        box-shadow: 0 2px 10px rgba(0,0,0,.12);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background .15s, color .15s, border-color .15s;
+        white-space: nowrap;
+      }
+      #mob-filter-btn.active, #mob-removals-btn.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      #mob-filter-btn.active svg { stroke: #fff; }
+
+      /* Flyouts: card above the buttons */
+      #mob-venue-flyout, #mob-sev-flyout {
+        display: none;
+        background: rgba(250,249,246,.97);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--rule);
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.16);
+        overflow: hidden;
+      }
+      #mob-venue-flyout.open, #mob-sev-flyout.open { display: block; }
+
+      /* Venue pills: horizontal scroll inside flyout */
+      #mob-venue-scroll {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 14px;
+        max-width: min(280px, calc(100vw - 28px));
+      }
+      #mob-venue-scroll .venue-pill { font-size: 12px; padding: 5px 10px 5px 8px; }
+
+      /* Severity rows inside flyout */
+      #mob-sev-flyout { min-width: 200px; }
+      #mob-sev-flyout .mob-sev-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        cursor: pointer;
+        transition: background .12s;
+        border-bottom: 1px solid var(--rule);
+        -webkit-tap-highlight-color: transparent;
+      }
+      #mob-sev-flyout .mob-sev-row:last-child { border-bottom: none; }
+      #mob-sev-flyout .mob-sev-row:hover { background: rgba(0,0,0,.04); }
+      #mob-sev-flyout .mob-sev-row.active { background: rgba(196,154,58,.10); }
+      .mob-sev-label-text { font-size: 13px; font-weight: 500; flex: 1; }
+      .mob-sev-range { font-size: 11px; color: var(--muted); }
+      #mob-sev-flyout .mob-sev-row.active .mob-sev-label-text { color: var(--accent); }
+      #mob-sev-flyout .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
     }
 
-    /* ── Desktop: hide mobile-only elements; fix sidebar flex layout ── */
+    /* ── Desktop: hide mobile-only overlays; fix sidebar flex layout ── */
     @media (min-width: 768px) {
-      #mob-type-panel { display: none; }
-      #mob-sev-panel  { display: none; }
-      .sheet-footer   { display: none; }
-      /* Search back in topbar: flex:1 fills the row after lang-switch */
+      #mob-map-overlays { display: none; }
+      .sheet-footer     { display: none; }
+      /* Search in topbar: flex:1 fills the row after lang-switch */
       #venue-search-wrap { position: relative; flex: 1; padding: 0; }
-      /* Sheet content is the single flex child of #sidebar — fills everything below handle */
+      /* Sheet content fills sidebar, column flex so #list can scroll */
       .sheet-content {
         flex: 1;
         display: flex;
@@ -1611,50 +1669,6 @@
     <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
     <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
   </div>
-  <!-- Venue type filter — persistent on mobile (sticky above list), hidden on desktop -->
-  <div id="mob-type-panel">
-    <div id="mob-type-scroll">
-      <button class="venue-pill" data-type="restaurant">
-        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="11"/><polyline points="0,1 0,4 2,5.5 4,4 4,1"/><line x1="9" y1="1" x2="9" y2="4.5" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="4.5" x2="9" y2="11"/></svg>Restaurants
-      </button>
-      <button class="venue-pill" data-type="bar">
-        <svg width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,1 Q0,5 5,7 Q10,5 9,1 Z"/><line x1="5" y1="7" x2="5" y2="11"/><line x1="2.5" y1="11" x2="7.5" y2="11"/></svg>Bars
-      </button>
-      <button class="venue-pill" data-type="cafe">
-        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,3 L1,9 Q1,11 3,11 L7,11 Q9,11 9,9 L9,3 Z"/><path d="M9,5 Q12,5 12,7 Q12,9 9,9"/></svg>Cafés
-      </button>
-      <button class="venue-pill" data-type="museum">
-        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="0.5" y1="11.5" x2="12.5" y2="11.5"/><line x1="1.5" y1="5" x2="1.5" y2="11"/><line x1="4.5" y1="5" x2="4.5" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="11" y1="5" x2="11" y2="11"/><polyline points="0.5,5 6.5,1 12.5,5"/></svg>Museums
-      </button>
-      <button class="venue-pill" data-type="club">
-        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="0,6 2,6 3.5,2 5,10 6.5,4 8,8 9.5,6 13,6"/></svg>Clubs
-      </button>
-      <button class="venue-pill" data-type="gym">
-        <svg width="14" height="7" viewBox="0 0 14 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="0.5" x2="1" y2="6.5"/><line x1="3" y1="1.5" x2="3" y2="5.5"/><line x1="3" y1="3.5" x2="11" y2="3.5"/><line x1="11" y1="1.5" x2="11" y2="5.5"/><line x1="13" y1="0.5" x2="13" y2="6.5"/></svg>Gyms
-      </button>
-    </div>
-  </div>
-
-  <!-- Severity filter — persistent on mobile, hidden on desktop -->
-  <div id="mob-sev-panel">
-    <div class="mob-sev-row key-row" data-sev="1">
-      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg>
-      <span class="mob-sev-label-text">Rare</span><span class="mob-sev-range">1–10 removals</span>
-    </div>
-    <div class="mob-sev-row key-row" data-sev="2">
-      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,17 2,17" fill="var(--sev-3)" stroke="white" stroke-width="1.5"/></svg>
-      <span class="mob-sev-label-text">Repeated</span><span class="mob-sev-range">11–50 removals</span>
-    </div>
-    <div class="mob-sev-row key-row" data-sev="3">
-      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,10 10,18 2,10" fill="var(--sev-4)" stroke="white" stroke-width="1.5"/></svg>
-      <span class="mob-sev-label-text">Significant</span><span class="mob-sev-range">51–200 removals</span>
-    </div>
-    <div class="mob-sev-row key-row" data-sev="4">
-      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,1 19,10 10,19 1,10" fill="var(--sev-5)" stroke="white" stroke-width="1.5"/></svg>
-      <span class="mob-sev-label-text">Extreme</span><span class="mob-sev-range">200+ removals</span>
-    </div>
-  </div>
-
   <div id="modes">
     <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
     <button class="mode-btn active" data-mode="rate">Removal Rate</button>
@@ -1668,6 +1682,70 @@
 
 <div id="side-tab" aria-label="Toggle panel">
   <div class="side-pill"></div>
+</div>
+
+<!-- ── Mobile map overlays (hidden on desktop) ─────────────────────────────── -->
+<!-- Search is wired to the same #venue-search-input via position:fixed on mobile -->
+<div id="mob-map-overlays" aria-hidden="true">
+  <!-- Venue type filter — bottom left -->
+  <div id="mob-venue-wrap">
+    <div id="mob-venue-flyout" role="dialog" aria-label="Filter by venue type">
+      <div id="mob-venue-scroll">
+        <button class="venue-pill" data-type="restaurant">
+          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="11"/><polyline points="0,1 0,4 2,5.5 4,4 4,1"/><line x1="9" y1="1" x2="9" y2="4.5" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="4.5" x2="9" y2="11"/></svg>Restaurants
+        </button>
+        <button class="venue-pill" data-type="bar">
+          <svg width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,1 Q0,5 5,7 Q10,5 9,1 Z"/><line x1="5" y1="7" x2="5" y2="11"/><line x1="2.5" y1="11" x2="7.5" y2="11"/></svg>Bars
+        </button>
+        <button class="venue-pill" data-type="cafe">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,3 L1,9 Q1,11 3,11 L7,11 Q9,11 9,9 L9,3 Z"/><path d="M9,5 Q12,5 12,7 Q12,9 9,9"/></svg>Cafés
+        </button>
+        <button class="venue-pill" data-type="museum">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="0.5" y1="11.5" x2="12.5" y2="11.5"/><line x1="1.5" y1="5" x2="1.5" y2="11"/><line x1="4.5" y1="5" x2="4.5" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="11" y1="5" x2="11" y2="11"/><polyline points="0.5,5 6.5,1 12.5,5"/></svg>Museums
+        </button>
+        <button class="venue-pill" data-type="club">
+          <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="0,6 2,6 3.5,2 5,10 6.5,4 8,8 9.5,6 13,6"/></svg>Clubs
+        </button>
+        <button class="venue-pill" data-type="gym">
+          <svg width="14" height="7" viewBox="0 0 14 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="0.5" x2="1" y2="6.5"/><line x1="3" y1="1.5" x2="3" y2="5.5"/><line x1="3" y1="3.5" x2="11" y2="3.5"/><line x1="11" y1="1.5" x2="11" y2="5.5"/><line x1="13" y1="0.5" x2="13" y2="6.5"/></svg>Gyms
+        </button>
+      </div>
+    </div>
+    <button id="mob-filter-btn" aria-expanded="false" aria-haspopup="dialog">
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <line x1="0" y1="1.5" x2="13" y2="1.5"/>
+        <line x1="2" y1="5.5" x2="11" y2="5.5"/>
+        <line x1="4" y1="9.5" x2="9" y2="9.5"/>
+      </svg>
+      <span id="mob-filter-label">Filter</span>
+    </button>
+  </div>
+
+  <!-- Severity filter — bottom right -->
+  <div id="mob-sev-wrap">
+    <div id="mob-sev-flyout" role="dialog" aria-label="Filter by removal count">
+      <div class="mob-sev-row key-row" data-sev="1">
+        <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg>
+        <span class="mob-sev-label-text">Rare</span><span class="mob-sev-range">1–10</span>
+      </div>
+      <div class="mob-sev-row key-row" data-sev="2">
+        <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,17 2,17" fill="var(--sev-3)" stroke="white" stroke-width="1.5"/></svg>
+        <span class="mob-sev-label-text">Repeated</span><span class="mob-sev-range">11–50</span>
+      </div>
+      <div class="mob-sev-row key-row" data-sev="3">
+        <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,10 10,18 2,10" fill="var(--sev-4)" stroke="white" stroke-width="1.5"/></svg>
+        <span class="mob-sev-label-text">Significant</span><span class="mob-sev-range">51–200</span>
+      </div>
+      <div class="mob-sev-row key-row" data-sev="4">
+        <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,1 19,10 10,19 1,10" fill="var(--sev-5)" stroke="white" stroke-width="1.5"/></svg>
+        <span class="mob-sev-label-text">Extreme</span><span class="mob-sev-range">200+</span>
+      </div>
+    </div>
+    <button id="mob-removals-btn" aria-expanded="false" aria-haspopup="dialog">
+      <span id="mob-removals-label">Removals</span>
+      <svg width="8" height="6" viewBox="0 0 8 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1,1 4,5 7,1"/></svg>
+    </button>
+  </div>
 </div>
 
 <div id="map-wrap">
@@ -2921,9 +2999,69 @@
     });
   })();
 
-  // ── Mobile filter panels — persistent, no toggle buttons needed ─────────────
-  // Venue type pills and severity rows are always visible when sheet is open.
-  // Clicks are handled by the existing global .venue-pill and .key-row handlers.
+  // ── Mobile map overlay filters (flyout buttons on the map) ──────────────────
+  (function() {
+    if (window.innerWidth >= 768) return;
+
+    const filterBtn   = document.getElementById('mob-filter-btn');
+    const removalsBtn = document.getElementById('mob-removals-btn');
+    const venueFlyout = document.getElementById('mob-venue-flyout');
+    const sevFlyout   = document.getElementById('mob-sev-flyout');
+
+    function closeAll() {
+      venueFlyout?.classList.remove('open');
+      sevFlyout?.classList.remove('open');
+      filterBtn?.classList.remove('active');
+      removalsBtn?.classList.remove('active');
+      if (filterBtn)   filterBtn.setAttribute('aria-expanded', 'false');
+      if (removalsBtn) removalsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    filterBtn?.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = venueFlyout.classList.contains('open');
+      closeAll();
+      if (!isOpen) {
+        venueFlyout.classList.add('open');
+        filterBtn.classList.add('active');
+        filterBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    removalsBtn?.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = sevFlyout.classList.contains('open');
+      closeAll();
+      if (!isOpen) {
+        sevFlyout.classList.add('open');
+        removalsBtn.classList.add('active');
+        removalsBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    // Close flyouts when tapping the map
+    document.getElementById('map-wrap')?.addEventListener('click', closeAll);
+
+    // Close severity flyout after selecting a row; update button label
+    document.querySelectorAll('#mob-sev-flyout .mob-sev-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const lbl   = document.getElementById('mob-removals-label');
+        const nowOn = row.classList.contains('active'); // active toggled by global handler first
+        if (lbl) lbl.textContent = nowOn ? 'Removals' : (row.querySelector('.mob-sev-label-text')?.textContent || 'Removals');
+        setTimeout(closeAll, 160);
+      });
+    });
+
+    // Show active pill count on Filter button
+    document.querySelectorAll('#mob-venue-scroll .venue-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const lbl = document.getElementById('mob-filter-label');
+        const n   = document.querySelectorAll('#mob-venue-scroll .venue-pill.active').length;
+        if (lbl) lbl.textContent = n > 0 ? `Filter (${n})` : 'Filter';
+        filterBtn?.classList.toggle('active', n > 0);
+      });
+    });
+  })();
 
   // ── Mobile onboarding lite card ───────────────────────────────────────────
   (function() {
