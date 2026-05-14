@@ -1606,7 +1606,7 @@
     <p class="ob-lite-tagline" id="ob-lite-tagline"><em>Can you still trust Google Maps?</em></p>
     <button class="ob-lite-cta" id="ob-lite-btn">
       <span class="ob-lite-count" id="ob-lite-count">—</span>
-      <span class="ob-lite-cta-label" id="ob-lite-cta-label">reviews removed this year</span>
+      <span class="ob-lite-cta-label" id="ob-lite-cta-label">reviews removed in the last year</span>
     </button>
     <p class="ob-lite-legal" id="ob-lite-legal">NB — Defamation complaints may target fake reviews as well as genuine ones.</p>
   </div>
@@ -3205,7 +3205,7 @@
     const de = navigator.language && navigator.language.toLowerCase().startsWith('de');
     if (de) {
       if (tagline) tagline.innerHTML = '<em>Kann man Google Maps noch vertrauen?</em>';
-      if (label)   label.textContent = 'Bewertungen dieses Jahr entfernt';
+      if (label)   label.textContent = 'Bewertungen im letzten Jahr entfernt';
       if (legal)   legal.textContent = 'Hinweis — Verleumdungsbeschwerden können sich sowohl gegen gefälschte als auch gegen echte Bewertungen richten.';
     }
 
