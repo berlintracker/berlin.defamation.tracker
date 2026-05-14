@@ -1445,6 +1445,10 @@
       .mob-sev-range { font-size: 11px; color: var(--muted); }
       #mob-sev-flyout .mob-sev-row.active .mob-sev-label-text { color: var(--accent); }
       #mob-sev-flyout .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
+
+      /* Hide map overlays when list sheet is expanded */
+      #mob-map-overlays { transition: opacity .2s; }
+      #sidebar.sheet-open ~ #mob-map-overlays { opacity: 0; pointer-events: none !important; }
     }
 
     /* ── Desktop: hide mobile-only overlays; fix sidebar flex layout ── */
@@ -1503,7 +1507,14 @@
       font-size: 14px;
       line-height: 1.6;
       color: var(--ink-2);
-      margin-bottom: 24px;
+      margin-bottom: 12px;
+    }
+    .ob-lite-body:last-of-type { margin-bottom: 24px; }
+    .ob-lite-legal {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin-top: 14px;
     }
     .ob-lite-cta {
       background: var(--accent);
@@ -1528,8 +1539,10 @@
 <div id="ob-lite">
   <div class="ob-lite-card">
     <div class="ob-lite-logo">Berlin Trust Index</div>
-    <p class="ob-lite-body" id="ob-lite-body">Google is removing reviews from Berlin venues following defamation complaints. This map documents them.</p>
-    <button class="ob-lite-cta" id="ob-lite-btn">Explore the data →</button>
+    <p class="ob-lite-body" id="ob-lite-body-1">In Germany, Google reviews will be removed within 24 hours of a defamation complaint.</p>
+    <p class="ob-lite-body" id="ob-lite-body-2">Law firms advertise this service from €99 a removal.</p>
+    <button class="ob-lite-cta" id="ob-lite-btn">Can you still trust Google Maps?</button>
+    <p class="ob-lite-legal" id="ob-lite-legal">NB — Defamation complaints may target fake reviews as well as genuine ones.</p>
   </div>
 </div>
 
@@ -1726,19 +1739,19 @@
     <div id="mob-sev-flyout" role="dialog" aria-label="Filter by removal count">
       <div class="mob-sev-row key-row" data-sev="1">
         <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg>
-        <span class="mob-sev-label-text">Rare</span><span class="mob-sev-range">1–10</span>
+        <span class="mob-sev-range">1–10</span>
       </div>
       <div class="mob-sev-row key-row" data-sev="2">
         <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,17 2,17" fill="var(--sev-3)" stroke="white" stroke-width="1.5"/></svg>
-        <span class="mob-sev-label-text">Repeated</span><span class="mob-sev-range">11–50</span>
+        <span class="mob-sev-range">11–50</span>
       </div>
       <div class="mob-sev-row key-row" data-sev="3">
         <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,10 10,18 2,10" fill="var(--sev-4)" stroke="white" stroke-width="1.5"/></svg>
-        <span class="mob-sev-label-text">Significant</span><span class="mob-sev-range">51–200</span>
+        <span class="mob-sev-range">51–200</span>
       </div>
       <div class="mob-sev-row key-row" data-sev="4">
         <svg width="11" height="11" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,1 19,10 10,19 1,10" fill="var(--sev-5)" stroke="white" stroke-width="1.5"/></svg>
-        <span class="mob-sev-label-text">Extreme</span><span class="mob-sev-range">200+</span>
+        <span class="mob-sev-range">200+</span>
       </div>
     </div>
     <button id="mob-removals-btn" aria-expanded="false" aria-haspopup="dialog">
@@ -2999,6 +3012,15 @@
     });
   })();
 
+  // ── Mobile: rescue search from display:none ancestor ────────────────────────
+  // #venue-search-wrap lives inside #sidebar-header which is display:none on mobile.
+  // position:fixed on a child of display:none is never rendered — move it to <body>.
+  (function() {
+    if (window.innerWidth >= 681) return;
+    const wrap = document.getElementById('venue-search-wrap');
+    if (wrap) document.body.appendChild(wrap);
+  })();
+
   // ── Mobile map overlay filters (flyout buttons on the map) ──────────────────
   (function() {
     if (window.innerWidth >= 768) return;
@@ -3068,14 +3090,20 @@
     if (window.innerWidth >= 768) return;
     if (document.cookie.includes('seen_intro=1')) return;
 
-    const card = document.getElementById('ob-lite');
-    const btn  = document.getElementById('ob-lite-btn');
-    const body = document.getElementById('ob-lite-body');
+    const card   = document.getElementById('ob-lite');
+    const btn    = document.getElementById('ob-lite-btn');
+    const body1  = document.getElementById('ob-lite-body-1');
+    const body2  = document.getElementById('ob-lite-body-2');
+    const legal  = document.getElementById('ob-lite-legal');
 
     // Bilingual
     const de = navigator.language && navigator.language.toLowerCase().startsWith('de');
-    if (de && body) body.textContent = 'Google entfernt Bewertungen aus Berliner Betrieben nach Diffamierungsbeschwerden. Diese Karte dokumentiert sie.';
-    if (de && btn)  btn.textContent  = 'Daten erkunden →';
+    if (de) {
+      if (body1) body1.textContent = 'In Deutschland werden Google-Bewertungen innerhalb von 24 Stunden nach einer Verleumdungsbeschwerde entfernt.';
+      if (body2) body2.textContent = 'Anwaltskanzleien bieten diesen Service ab 99 € pro Entfernung an.';
+      if (btn)   btn.textContent   = 'Kann man Google Maps noch vertrauen?';
+      if (legal) legal.textContent = 'Hinweis — Verleumdungsbeschwerden können sich sowohl gegen gefälschte als auch gegen echte Bewertungen richten.';
+    }
 
     if (card) card.classList.add('show');
 
@@ -3089,11 +3117,14 @@
 
   function updateHandleMini() {
     if (window.innerWidth > 680) return;
-    const hits    = allData.length;
-    const checked = (_storedMeta && _storedMeta.total_checked) || hits;
-    const pct     = Math.round((hits / checked) * 100);
-    const el      = document.getElementById('handle-stat-mini');
-    if (el) el.textContent = hits + ' venues · ' + pct + '%';
+    const el = document.getElementById('handle-stat-mini');
+    if (!el) return;
+    const vd = (typeof getViewData === 'function') ? getViewData() : null;
+    if (!vd || vd.citywide) {
+      el.textContent = 'Berlin';
+    } else {
+      el.textContent = (vd.kiez || vd.district || 'Berlin').toUpperCase();
+    }
   }
 
   // ── Reactive stat card ────────────────────────────────────────────────────
