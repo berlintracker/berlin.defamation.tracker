@@ -1417,7 +1417,8 @@
       #mob-venue-flyout.open, #mob-sev-flyout.open { display: block; }
 
       /* Venue pills: wrap inside flyout, shrink to content */
-      #mob-venue-flyout { display: inline-block; max-width: min(280px, calc(100vw - 28px)); }
+      #mob-venue-flyout { max-width: min(280px, calc(100vw - 28px)); }
+      #mob-venue-flyout.open { display: inline-block; } /* overrides shared display:block so width shrinks to content */
       #mob-venue-scroll {
         display: inline-flex;
         flex-wrap: wrap;
