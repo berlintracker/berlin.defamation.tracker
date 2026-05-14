@@ -1446,6 +1446,23 @@
       #mob-sev-flyout .mob-sev-row.active .mob-sev-label-text { color: var(--accent); }
       #mob-sev-flyout .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
 
+      /* Description block — only inside sheet, hidden on desktop */
+      #mob-sheet-desc {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid var(--rule);
+      }
+      #mob-sheet-desc-text {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink);
+        margin-bottom: 8px;
+      }
+      #mob-sheet-disclaimer {
+        font-size: 10.5px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
       /* Hide map overlays when list sheet is expanded */
       #mob-map-overlays { transition: opacity .2s; }
       #sidebar.sheet-open ~ #mob-map-overlays { opacity: 0; pointer-events: none !important; }
@@ -1455,7 +1472,7 @@
         position: fixed;
         top: 68px; /* below search bar (12px offset + ~48px bar + 8px gap) */
         left: 12px;
-        z-index: 151;
+        z-index: 149; /* below search wrap (150) so dropdown renders on top */
         display: flex;
         background: rgba(250,249,246,.96);
         backdrop-filter: blur(14px);
@@ -1485,6 +1502,7 @@
     @media (min-width: 768px) {
       #mob-map-overlays { display: none; }
       #mob-lang-switch  { display: none; }
+      #mob-sheet-desc   { display: none; }
       .sheet-footer     { display: none; }
       /* Search in topbar: flex:1 fills the row after lang-switch */
       #venue-search-wrap { position: relative; flex: 1; padding: 0; }
@@ -1736,6 +1754,12 @@
     <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
     <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
   </div>
+  <!-- Mobile-only description — visible when sheet is raised -->
+  <div id="mob-sheet-desc">
+    <p id="mob-sheet-desc-text">Can you trust Google Maps? Reviews removed from Berlin venues following defamation complaints — figures disclosed by Google.</p>
+    <p id="mob-sheet-disclaimer">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
+  </div>
+
   <div id="modes">
     <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
     <button class="mode-btn active" data-mode="rate">Removal Rate</button>
@@ -2108,6 +2132,8 @@
     updateHandleMini();
     document.getElementById('sidebar-desc').textContent = S.description;
     const sideDisclaimer = document.getElementById('sidebar-disclaimer'); if (sideDisclaimer) sideDisclaimer.textContent = S.disclaimer;
+    const mobDesc = document.getElementById('mob-sheet-desc-text'); if (mobDesc) mobDesc.textContent = S.description;
+    const mobDisc = document.getElementById('mob-sheet-disclaimer'); if (mobDisc) mobDisc.textContent = S.disclaimer;
     const aboutLink = document.getElementById('about-link');
     if (aboutLink) aboutLink.textContent = S.aboutLink;
 
