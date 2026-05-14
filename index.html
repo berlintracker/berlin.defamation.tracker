@@ -1449,11 +1449,42 @@
       /* Hide map overlays when list sheet is expanded */
       #mob-map-overlays { transition: opacity .2s; }
       #sidebar.sheet-open ~ #mob-map-overlays { opacity: 0; pointer-events: none !important; }
+
+      /* ── Mobile language switch ── */
+      #mob-lang-switch {
+        position: fixed;
+        top: 68px; /* below search bar (12px offset + ~48px bar + 8px gap) */
+        right: 12px;
+        z-index: 151;
+        display: flex;
+        background: rgba(250,249,246,.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--rule);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,.10);
+      }
+      .mob-lang-opt {
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: none;
+        border: none;
+        padding: 6px 9px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: color .15s;
+      }
+      .mob-lang-opt:first-child { border-right: 1px solid var(--rule); }
+      .mob-lang-opt.active { font-weight: 600; color: var(--ink); }
     }
 
     /* ── Desktop: hide mobile-only overlays; fix sidebar flex layout ── */
     @media (min-width: 768px) {
       #mob-map-overlays { display: none; }
+      #mob-lang-switch  { display: none; }
       .sheet-footer     { display: none; }
       /* Search in topbar: flex:1 fills the row after lang-switch */
       #venue-search-wrap { position: relative; flex: 1; padding: 0; }
@@ -1561,6 +1592,12 @@
     </button>
     <p class="ob-lite-legal" id="ob-lite-legal">NB — Defamation complaints may target fake reviews as well as genuine ones.</p>
   </div>
+</div>
+
+<!-- ── Mobile language switch (fixed below search bar) ────────────────────── -->
+<div id="mob-lang-switch" aria-label="Language">
+  <button class="mob-lang-opt active" data-lang="en">EN</button>
+  <button class="mob-lang-opt" data-lang="de">DE</button>
 </div>
 
 <!-- ── Mobile holding page (legacy — kept for email signup, not displayed) ── -->
@@ -2045,9 +2082,21 @@
     document.documentElement.lang = lang; // enables html[lang="de"] CSS rules
     const S = STRINGS[lang];
 
-    // Switcher UI — toggle bold on active option
-    document.querySelectorAll('.lang-opt').forEach(opt =>
+    // Switcher UI — toggle bold on active option (desktop + mobile)
+    document.querySelectorAll('.lang-opt, .mob-lang-opt').forEach(opt =>
       opt.classList.toggle('active', opt.dataset.lang === lang));
+
+    // Mobile-only: translate filter/removals buttons
+    const mobFilterLbl   = document.getElementById('mob-filter-label');
+    const mobRemovalsLbl = document.getElementById('mob-removals-label');
+    if (mobFilterLbl) {
+      const n = document.querySelectorAll('#mob-venue-scroll .venue-pill.active').length;
+      const base = lang === 'de' ? 'Filter' : 'Filter';
+      mobFilterLbl.textContent = n > 0 ? base + ' (' + n + ')' : base;
+    }
+    if (mobRemovalsLbl && !document.querySelector('#mob-sev-flyout .mob-sev-row.active')) {
+      mobRemovalsLbl.textContent = lang === 'de' ? 'Entfernungen' : 'Removals';
+    }
 
     // Search placeholder
     const si = document.getElementById('venue-search-input');
@@ -3041,6 +3090,14 @@
     if (wrap) document.body.appendChild(wrap);
   })();
 
+  // ── Mobile language switch ────────────────────────────────────────────────
+  (function() {
+    if (window.innerWidth >= 768) return;
+    document.querySelectorAll('.mob-lang-opt').forEach(btn => {
+      btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+    });
+  })();
+
   // ── Mobile map overlay filters (flyout buttons on the map) ──────────────────
   (function() {
     if (window.innerWidth >= 768) return;
@@ -3089,7 +3146,8 @@
       row.addEventListener('click', () => {
         const lbl   = document.getElementById('mob-removals-label');
         const nowOn = row.classList.contains('active'); // active toggled by global handler first
-        if (lbl) lbl.textContent = nowOn ? 'Removals' : (row.querySelector('.mob-sev-label-text')?.textContent || 'Removals');
+        const remBase = (typeof currentLang !== 'undefined' && currentLang === 'de') ? 'Entfernungen' : 'Removals';
+        if (lbl) lbl.textContent = remBase;
         setTimeout(closeAll, 160);
       });
     });
@@ -3099,7 +3157,7 @@
       pill.addEventListener('click', () => {
         const lbl = document.getElementById('mob-filter-label');
         const n   = document.querySelectorAll('#mob-venue-scroll .venue-pill.active').length;
-        if (lbl) lbl.textContent = n > 0 ? `Filter (${n})` : 'Filter';
+        if (lbl) lbl.textContent = n > 0 ? 'Filter (' + n + ')' : 'Filter';
         filterBtn?.classList.toggle('active', n > 0);
       });
     });
