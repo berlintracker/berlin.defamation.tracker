@@ -1557,7 +1557,7 @@
     <p class="ob-lite-tagline" id="ob-lite-tagline"><em>Can you still trust Google Maps?</em></p>
     <button class="ob-lite-cta" id="ob-lite-btn">
       <span class="ob-lite-count" id="ob-lite-count">—</span>
-      <span class="ob-lite-cta-label" id="ob-lite-cta-label">Google reviews removed</span>
+      <span class="ob-lite-cta-label" id="ob-lite-cta-label">reviews removed this year</span>
     </button>
     <p class="ob-lite-legal" id="ob-lite-legal">NB — Defamation complaints may target fake reviews as well as genuine ones.</p>
   </div>
@@ -2656,6 +2656,7 @@
     // Headline stat — set city baseline for reactive card
     const totalRemoved = allData.reduce((s, p) => s + (p._removed || 0), 0);
     _cityTotalRemoved  = totalRemoved;
+    if (typeof window._triggerLiteCount === 'function') { window._triggerLiteCount(); window._triggerLiteCount = null; }
     _cityHitRate       = meta.total_checked > 0 ? allData.length / meta.total_checked : 0;
     window._areaStats  = meta.area_stats || {};
 
@@ -3120,13 +3121,13 @@
     const de = navigator.language && navigator.language.toLowerCase().startsWith('de');
     if (de) {
       if (tagline) tagline.innerHTML = '<em>Kann man Google Maps noch vertrauen?</em>';
-      if (label)   label.textContent = 'Google-Bewertungen entfernt';
+      if (label)   label.textContent = 'Bewertungen dieses Jahr entfernt';
       if (legal)   legal.textContent = 'Hinweis — Verleumdungsbeschwerden können sich sowohl gegen gefälschte als auch gegen echte Bewertungen richten.';
     }
 
-    // Count-up animation — waits for data if needed
+    // Count-up animation — deferred past TDZ, polls until data loads
     function animateLiteCount() {
-      const target = _cityTotalRemoved || 0;
+      const target = (typeof _cityTotalRemoved !== 'undefined' && _cityTotalRemoved) ? _cityTotalRemoved : 0;
       if (!target) { setTimeout(animateLiteCount, 400); return; }
       if (!countEl) return;
       let v = 0;
@@ -3140,9 +3141,11 @@
         }
       }, 18);
     }
+    // Expose so loadData can trigger it once _cityTotalRemoved is set
+    window._triggerLiteCount = animateLiteCount;
 
     if (card) card.classList.add('show');
-    animateLiteCount();
+    setTimeout(animateLiteCount, 0); // defer past TDZ
 
     btn?.addEventListener('click', () => {
       document.cookie = 'seen_intro=1; path=/; max-age=31536000';
