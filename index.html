@@ -116,15 +116,7 @@
       border-bottom: 1px solid var(--rule);
     }
 
-    /* On desktop, search sits above sidebar-header as a flex sibling */
-    @media (min-width: 768px) {
-      #venue-search-wrap {
-        padding: 20px 28px 0;
-        flex-shrink: 0;
-      }
-    }
-
-    /* ── Top utility bar: lang (search now sits above sidebar-header) ── */
+    /* ── Top utility bar: lang ── */
     #sidebar-topbar {
       display: flex;
       align-items: center;
@@ -1306,8 +1298,8 @@
 
       /* ── Search — always visible, sits between handle and filter bar ── */
       #venue-search-wrap {
-        padding: 0 16px 0;
-        flex-shrink: 0;
+        flex: 0 0 auto;   /* don't grow — base rule had flex:1 which leaked flex-grow */
+        padding: 8px 16px;
       }
       #venue-search-input {
         font-size: 14px;
@@ -1413,14 +1405,32 @@
       }
     }
 
-    /* ── Desktop: hide mobile-only elements ── */
+    /* ── Desktop: hide mobile-only elements; fix sidebar flex layout ── */
     @media (min-width: 768px) {
       #mob-filter-bar { display: none; }
       #mob-type-panel { display: none; }
       #mob-sev-panel  { display: none; }
       .sheet-footer   { display: none; }
-      /* Search sits correctly in sidebar-topbar on desktop */
-      #venue-search-wrap { position: relative; flex: 1; padding: 0; }
+      /* Search is a flex-shrink-0 strip at the top of the sidebar column */
+      #venue-search-wrap {
+        position: relative;
+        flex: 0 0 auto;
+        padding: 16px 28px 10px;
+        border-bottom: 1px solid var(--rule);
+      }
+      /* Sheet content fills the rest and handles scrolling via #list */
+      .sheet-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+      }
+    }
+
+    /* ── Mobile: suppress desktop onboarding carousel ── */
+    @media (max-width: 767px) {
+      #ob-container { display: none !important; }
     }
 
     /* ── Onboarding lite card (mobile first-time visitors) ── */
@@ -2505,7 +2515,9 @@
       }
     });
 
-    if (_obActive) _obInit();
+    // Mobile uses the lite card instead — don't fire the desktop carousel
+    if (_obActive && window.innerWidth >= 768) _obInit();
+    else if (_obActive) _obActive = false;
   }
 
   async function loadData() {
