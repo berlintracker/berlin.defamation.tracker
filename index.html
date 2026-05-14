@@ -1338,14 +1338,14 @@
         flex: none !important;
       }
       #venue-search-input {
-        font-size: 15px;
+        font-size: 16px; /* must be ≥16px to prevent iOS auto-zoom on focus */
         padding: 13px 14px 13px 38px;
         border: none !important;
         background: transparent !important;
         border-radius: 12px;
         width: 100%;
       }
-      #venue-search-input:focus { background: transparent !important; }
+      #venue-search-input:focus { background: transparent !important; outline: none; }
       #venue-search-icon { left: 13px; width: 15px; height: 15px; }
       #venue-search-dropdown {
         border-radius: 0 0 12px 12px;
@@ -1416,18 +1416,18 @@
       }
       #mob-venue-flyout.open, #mob-sev-flyout.open { display: block; }
 
-      /* Venue pills: horizontal scroll inside flyout */
+      /* Venue pills: wrap inside flyout, shrink to content */
+      #mob-venue-flyout { width: fit-content; max-width: min(280px, calc(100vw - 28px)); }
       #mob-venue-scroll {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         padding: 12px 14px;
-        max-width: min(280px, calc(100vw - 28px));
       }
       #mob-venue-scroll .venue-pill { font-size: 12px; padding: 5px 10px 5px 8px; }
 
-      /* Severity rows inside flyout */
-      #mob-sev-flyout { min-width: 200px; }
+      /* Severity rows inside flyout — shrink to content */
+      #mob-sev-flyout { width: fit-content; }
       #mob-sev-flyout .mob-sev-row {
         display: flex;
         align-items: center;
@@ -1496,20 +1496,21 @@
     }
     .ob-lite-logo {
       font-family: "Source Serif 4", Georgia, serif;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--ink);
       margin-bottom: 16px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--rule);
     }
-    .ob-lite-body {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--ink-2);
-      margin-bottom: 12px;
+    .ob-lite-tagline {
+      font-size: 17px;
+      font-style: italic;
+      font-family: "Source Serif 4", Georgia, serif;
+      line-height: 1.4;
+      color: var(--ink);
+      margin: 20px 0 24px;
     }
-    .ob-lite-body:last-of-type { margin-bottom: 24px; }
     .ob-lite-legal {
       font-size: 11px;
       line-height: 1.5;
@@ -1530,6 +1531,20 @@
       transition: opacity .2s;
     }
     .ob-lite-cta:active { opacity: .85; }
+    .ob-lite-count {
+      display: block;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+    .ob-lite-cta-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 400;
+      opacity: .85;
+      margin-top: 3px;
+    }
   </style>
   <script data-goatcounter="https://berlintracker.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
@@ -1538,10 +1553,12 @@
 <!-- ── Mobile onboarding lite card (first-time visitors) ──────────────────── -->
 <div id="ob-lite">
   <div class="ob-lite-card">
-    <div class="ob-lite-logo">Berlin Trust Index</div>
-    <p class="ob-lite-body" id="ob-lite-body-1">In Germany, Google reviews will be removed within 24 hours of a defamation complaint.</p>
-    <p class="ob-lite-body" id="ob-lite-body-2">Law firms advertise this service from €99 a removal.</p>
-    <button class="ob-lite-cta" id="ob-lite-btn">Can you still trust Google Maps?</button>
+    <div class="ob-lite-logo" id="ob-lite-logo">Berlin Trust Index<br><em>Berlin Vertrauensindex</em></div>
+    <p class="ob-lite-tagline" id="ob-lite-tagline"><em>Can you still trust Google Maps?</em></p>
+    <button class="ob-lite-cta" id="ob-lite-btn">
+      <span class="ob-lite-count" id="ob-lite-count">—</span>
+      <span class="ob-lite-cta-label" id="ob-lite-cta-label">Google reviews removed</span>
+    </button>
     <p class="ob-lite-legal" id="ob-lite-legal">NB — Defamation complaints may target fake reviews as well as genuine ones.</p>
   </div>
 </div>
@@ -2488,7 +2505,9 @@
       clearTimeout(window._boundsTimer);
       window._boundsTimer = setTimeout(renderList, 300);
       scheduleStatUpdate();
+      updateHandleMini();
     });
+    map.on('zoomend', updateHandleMini);
 
     document.querySelectorAll(".mode-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -3090,22 +3109,40 @@
     if (window.innerWidth >= 768) return;
     if (document.cookie.includes('seen_intro=1')) return;
 
-    const card   = document.getElementById('ob-lite');
-    const btn    = document.getElementById('ob-lite-btn');
-    const body1  = document.getElementById('ob-lite-body-1');
-    const body2  = document.getElementById('ob-lite-body-2');
-    const legal  = document.getElementById('ob-lite-legal');
+    const card    = document.getElementById('ob-lite');
+    const btn     = document.getElementById('ob-lite-btn');
+    const tagline = document.getElementById('ob-lite-tagline');
+    const label   = document.getElementById('ob-lite-cta-label');
+    const countEl = document.getElementById('ob-lite-count');
+    const legal   = document.getElementById('ob-lite-legal');
 
     // Bilingual
     const de = navigator.language && navigator.language.toLowerCase().startsWith('de');
     if (de) {
-      if (body1) body1.textContent = 'In Deutschland werden Google-Bewertungen innerhalb von 24 Stunden nach einer Verleumdungsbeschwerde entfernt.';
-      if (body2) body2.textContent = 'Anwaltskanzleien bieten diesen Service ab 99 € pro Entfernung an.';
-      if (btn)   btn.textContent   = 'Kann man Google Maps noch vertrauen?';
-      if (legal) legal.textContent = 'Hinweis — Verleumdungsbeschwerden können sich sowohl gegen gefälschte als auch gegen echte Bewertungen richten.';
+      if (tagline) tagline.innerHTML = '<em>Kann man Google Maps noch vertrauen?</em>';
+      if (label)   label.textContent = 'Google-Bewertungen entfernt';
+      if (legal)   legal.textContent = 'Hinweis — Verleumdungsbeschwerden können sich sowohl gegen gefälschte als auch gegen echte Bewertungen richten.';
+    }
+
+    // Count-up animation — waits for data if needed
+    function animateLiteCount() {
+      const target = _cityTotalRemoved || 0;
+      if (!target) { setTimeout(animateLiteCount, 400); return; }
+      if (!countEl) return;
+      let v = 0;
+      const step = Math.ceil(target / 80);
+      const timer = setInterval(() => {
+        v = Math.min(v + step, target);
+        countEl.textContent = v.toLocaleString();
+        if (v >= target) {
+          clearInterval(timer);
+          countEl.textContent = target.toLocaleString() + '+';
+        }
+      }, 18);
     }
 
     if (card) card.classList.add('show');
+    animateLiteCount();
 
     btn?.addEventListener('click', () => {
       document.cookie = 'seen_intro=1; path=/; max-age=31536000';
@@ -3121,9 +3158,9 @@
     if (!el) return;
     const vd = (typeof getViewData === 'function') ? getViewData() : null;
     if (!vd || vd.citywide) {
-      el.textContent = 'Berlin';
+      el.textContent = '';
     } else {
-      el.textContent = (vd.kiez || vd.district || 'Berlin').toUpperCase();
+      el.textContent = (vd.kiez || vd.district || '').toUpperCase();
     }
   }
 
