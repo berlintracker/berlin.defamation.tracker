@@ -1296,91 +1296,7 @@
 
       #about-modal { padding: 28px 24px 24px; }
 
-      /* ── Search — always visible, sits between handle and filter bar ── */
-      #venue-search-wrap {
-        flex: 0 0 auto;   /* don't grow — base rule had flex:1 which leaked flex-grow */
-        padding: 8px 16px;
-      }
-      #venue-search-input {
-        font-size: 14px;
-        padding: 10px 12px 10px 34px;
-        border-radius: 10px;
-      }
-
-      /* ── Mobile filter bar ── */
-      #mob-filter-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        flex-shrink: 0;
-        border-bottom: 1px solid var(--rule);
-      }
-
-      .mob-filter-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: var(--bg-overlay);
-        border: 1px solid var(--border-subtle);
-        border-radius: 20px;
-        font-family: "Inter", sans-serif;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--ink-2);
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: background .15s, color .15s;
-      }
-      .mob-filter-btn.active {
-        background: var(--ink);
-        color: #fff;
-        border-color: var(--ink);
-      }
-      .mob-filter-btn.active svg { stroke: #fff; }
-
-      /* ── Mobile filter panels ── */
-      .mob-filter-panel {
-        display: none;
-        flex-shrink: 0;
-        border-bottom: 1px solid var(--rule);
-        background: var(--bg-main);
-      }
-      .mob-filter-panel.open { display: block; }
-
-      /* Venue type panel: horizontal scroll */
-      #mob-type-scroll {
-        display: flex;
-        gap: 8px;
-        padding: 10px 16px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-      #mob-type-scroll::-webkit-scrollbar { display: none; }
-      #mob-type-scroll .venue-pill { flex-shrink: 0; font-size: 12px; padding: 5px 10px 5px 8px; }
-
-      /* Severity panel: 2×2 grid */
-      #mob-sev-panel { padding: 8px 16px 10px; }
-      .mob-sev-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 8px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background .15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .mob-sev-row:hover { background: rgba(0,0,0,.04); }
-      .mob-sev-row.active { background: rgba(196,154,58,0.10); color: var(--accent); }
-      .mob-sev-label-text { font-size: 13px; font-weight: 500; flex: 1; }
-      .mob-sev-range { font-size: 11px; color: var(--muted); }
-      .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
-
-      /* ── Sheet content: scrollable when expanded ── */
+      /* ── Sheet content: scrollable — search + filters sticky at top ── */
       .sheet-content {
         overflow-y: auto;
         overflow-x: hidden;
@@ -1389,8 +1305,75 @@
         overscroll-behavior: contain;
       }
 
-      /* Hide desktop-only header content on mobile */
-      #sidebar-header { display: none; }
+      /* On mobile, hide the title/desc but keep sidebar-header as a block so topbar is visible */
+      #sidebar-header { padding: 0; border-bottom: none; }
+      #sidebar-header h1,
+      #sidebar-header > p,
+      #sidebar-disclaimer { display: none; }
+
+      /* ── Sidebar topbar: sticky search row at top of scroll area ── */
+      #sidebar-topbar {
+        display: flex !important;
+        align-items: center;
+        padding: 10px 14px;
+        background: var(--bg-main);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 0 !important;
+      }
+      /* Hide lang-switch on mobile — search fills full width */
+      #sidebar-topbar .lang-switch { display: none; }
+      #venue-search-wrap { flex: 1; padding: 0; position: relative; }
+      #venue-search-input { font-size: 14px; padding: 10px 12px 10px 34px; border-radius: 10px; }
+
+      /* ── Persistent venue type pills — sticky below search ── */
+      #mob-type-panel {
+        display: block;
+        position: sticky;
+        top: 57px; /* search row height */
+        z-index: 9;
+        background: var(--bg-main);
+        border-bottom: 1px solid var(--rule);
+      }
+      #mob-type-scroll {
+        display: flex;
+        gap: 8px;
+        padding: 8px 14px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      #mob-type-scroll::-webkit-scrollbar { display: none; }
+      #mob-type-scroll .venue-pill { flex-shrink: 0; font-size: 12px; padding: 5px 10px 5px 8px; }
+
+      /* ── Persistent severity filter — sticky below venue pills ── */
+      #mob-sev-panel {
+        display: block;
+        position: sticky;
+        top: 106px; /* search + venue pills height */
+        z-index: 8;
+        background: var(--bg-main);
+        padding: 4px 14px 6px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .mob-sev-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background .15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-sev-row:hover { background: rgba(0,0,0,.04); }
+      .mob-sev-row.active { background: rgba(196,154,58,0.10); color: var(--accent); }
+      .mob-sev-label-text { font-size: 12px; font-weight: 500; flex: 1; }
+      .mob-sev-range { font-size: 11px; color: var(--muted); }
+      .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
 
       /* Mode tabs: full width */
       #modes { border-top: none; }
@@ -1407,18 +1390,12 @@
 
     /* ── Desktop: hide mobile-only elements; fix sidebar flex layout ── */
     @media (min-width: 768px) {
-      #mob-filter-bar { display: none; }
       #mob-type-panel { display: none; }
       #mob-sev-panel  { display: none; }
       .sheet-footer   { display: none; }
-      /* Search is a flex-shrink-0 strip at the top of the sidebar column */
-      #venue-search-wrap {
-        position: relative;
-        flex: 0 0 auto;
-        padding: 16px 28px 10px;
-        border-bottom: 1px solid var(--rule);
-      }
-      /* Sheet content fills the rest and handles scrolling via #list */
+      /* Search back in topbar: flex:1 fills the row after lang-switch */
+      #venue-search-wrap { position: relative; flex: 1; padding: 0; }
+      /* Sheet content is the single flex child of #sidebar — fills everything below handle */
       .sheet-content {
         flex: 1;
         display: flex;
@@ -1598,35 +1575,44 @@
     </div>
   </div>
 
-  <!-- Search — always visible on mobile (collapsed + expanded); styled into header on desktop -->
-  <div id="venue-search-wrap">
-    <svg id="venue-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-    <input id="venue-search-input" type="search" autocomplete="off" spellcheck="false"
-           placeholder="Search venues…" aria-label="Search venues" aria-haspopup="listbox" aria-expanded="false"/>
-    <div id="venue-search-dropdown" role="listbox"></div>
+  <div class="sheet-content">
+  <div id="sidebar-header">
+    <div id="sidebar-topbar">
+      <!-- Language picker (desktop only — hidden on mobile) -->
+      <div class="lang-switch" id="lang-switch">
+        <div class="lang-trigger">
+          <svg class="lang-globe" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M8 1.75C8 1.75 5.75 4.25 5.75 8C5.75 11.75 8 14.25 8 14.25M8 1.75C8 1.75 10.25 4.25 10.25 8C10.25 11.75 8 14.25 8 14.25M1.75 8H14.25M2.25 5.25H13.75M2.25 10.75H13.75" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span class="lang-opt active" data-lang="en" id="lang-en">EN</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-opt" data-lang="de" id="lang-de">DE</span>
+        </div>
+      </div>
+      <!-- Venue search (shared desktop + mobile) -->
+      <div id="venue-search-wrap">
+        <svg id="venue-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input id="venue-search-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search venues…" aria-label="Search venues" aria-haspopup="listbox" aria-expanded="false"/>
+        <div id="venue-search-dropdown" role="listbox"></div>
+      </div>
+    </div>
+    <h1 id="sidebar-title" onclick="resetHome()" style="cursor:pointer;" title="Reset to city view">
+      <span>
+        <span class="title-en">Berlin Trust Index</span>
+        <span class="title-de">Berlin Vertrauensindex</span>
+      </span>
+      <img src="./bear.png" class="site-bear" alt="" aria-hidden="true">
+    </h1>
+    <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
+    <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
   </div>
-
-  <!-- Mobile filter bar — always visible on mobile, hidden on desktop -->
-  <div id="mob-filter-bar">
-    <button id="mob-type-btn" class="mob-filter-btn" aria-expanded="false" aria-label="Filter by venue type">
-      <svg width="13" height="11" viewBox="0 0 13 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
-        <line x1="0" y1="1.5" x2="13" y2="1.5"/>
-        <line x1="2" y1="5.5" x2="11" y2="5.5"/>
-        <line x1="4" y1="9.5" x2="9" y2="9.5"/>
-      </svg>
-      <span class="mob-filter-btn-label">Filter</span>
-    </button>
-    <button id="mob-sev-btn" class="mob-filter-btn" aria-expanded="false" aria-label="Filter by removal count">
-      <span class="mob-filter-btn-label" id="mob-sev-label">Removals</span>
-      <svg id="mob-sev-chevron" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transition:transform .2s;flex-shrink:0;"><polyline points="1,2 4,6 7,2"/></svg>
-    </button>
-  </div>
-
-  <!-- Mobile venue type panel — expands under filter bar -->
-  <div id="mob-type-panel" class="mob-filter-panel">
+  <!-- Venue type filter — persistent on mobile (sticky above list), hidden on desktop -->
+  <div id="mob-type-panel">
     <div id="mob-type-scroll">
       <button class="venue-pill" data-type="restaurant">
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="11"/><polyline points="0,1 0,4 2,5.5 4,4 4,1"/><line x1="9" y1="1" x2="9" y2="4.5" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="4.5" x2="9" y2="11"/></svg>Restaurants
@@ -1649,8 +1635,8 @@
     </div>
   </div>
 
-  <!-- Mobile severity panel — expands under filter bar -->
-  <div id="mob-sev-panel" class="mob-filter-panel">
+  <!-- Severity filter — persistent on mobile, hidden on desktop -->
+  <div id="mob-sev-panel">
     <div class="mob-sev-row key-row" data-sev="1">
       <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg>
       <span class="mob-sev-label-text">Rare</span><span class="mob-sev-range">1–10 removals</span>
@@ -1669,32 +1655,6 @@
     </div>
   </div>
 
-  <div class="sheet-content">
-  <div id="sidebar-header">
-    <div id="sidebar-topbar">
-      <!-- Language picker -->
-      <div class="lang-switch" id="lang-switch">
-        <div class="lang-trigger">
-          <svg class="lang-globe" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M8 1.75C8 1.75 5.75 4.25 5.75 8C5.75 11.75 8 14.25 8 14.25M8 1.75C8 1.75 10.25 4.25 10.25 8C10.25 11.75 8 14.25 8 14.25M1.75 8H14.25M2.25 5.25H13.75M2.25 10.75H13.75" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
-          <span class="lang-opt active" data-lang="en" id="lang-en">EN</span>
-          <span class="lang-sep">/</span>
-          <span class="lang-opt" data-lang="de" id="lang-de">DE</span>
-        </div>
-      </div>
-    </div>
-    <h1 id="sidebar-title" onclick="resetHome()" style="cursor:pointer;" title="Reset to city view">
-      <span>
-        <span class="title-en">Berlin Trust Index</span>
-        <span class="title-de">Berlin Vertrauensindex</span>
-      </span>
-      <img src="./bear.png" class="site-bear" alt="" aria-hidden="true">
-    </h1>
-    <p id="sidebar-desc">Tracking Google Maps reviews removed from Berlin venues following defamation complaints.</p>
-    <p id="sidebar-disclaimer" style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.4;">Data sourced from Google's public disclosures. The data does not indicate whether complaints were legally justified, whether reviews were factually accurate, or whether any venue acted improperly.</p>
-  </div>
   <div id="modes">
     <!-- <button class="mode-btn active" data-mode="impact">Rating Gap</button> -->
     <button class="mode-btn active" data-mode="rate">Removal Rate</button>
@@ -2961,73 +2921,9 @@
     });
   })();
 
-  // ── Mobile filter panels ──────────────────────────────────────────────────
-  (function() {
-    if (window.innerWidth >= 768) return;
-
-    const typeBtn   = document.getElementById('mob-type-btn');
-    const sevBtn    = document.getElementById('mob-sev-btn');
-    const typePanel = document.getElementById('mob-type-panel');
-    const sevPanel  = document.getElementById('mob-sev-panel');
-    const sevChev   = document.getElementById('mob-sev-chevron');
-
-    function closeAll() {
-      typePanel.classList.remove('open');
-      sevPanel.classList.remove('open');
-      typeBtn.classList.remove('active');
-      sevBtn.classList.remove('active');
-      typeBtn.setAttribute('aria-expanded', 'false');
-      sevBtn.setAttribute('aria-expanded', 'false');
-      if (sevChev) sevChev.style.transform = '';
-    }
-
-    typeBtn?.addEventListener('click', e => {
-      e.stopPropagation();
-      const opening = !typePanel.classList.contains('open');
-      closeAll();
-      if (opening) {
-        typePanel.classList.add('open');
-        typeBtn.classList.add('active');
-        typeBtn.setAttribute('aria-expanded', 'true');
-      }
-    });
-
-    sevBtn?.addEventListener('click', e => {
-      e.stopPropagation();
-      const opening = !sevPanel.classList.contains('open');
-      closeAll();
-      if (opening) {
-        sevPanel.classList.add('open');
-        sevBtn.classList.add('active');
-        sevBtn.setAttribute('aria-expanded', 'true');
-        if (sevChev) sevChev.style.transform = 'rotate(180deg)';
-      }
-    });
-
-    // Close panels when tapping map
-    document.getElementById('map-wrap')?.addEventListener('click', closeAll);
-
-    // Mobile severity rows use .key-row[data-sev] — already wired by existing handler.
-    // After tap, close the panel and update button label.
-    document.querySelectorAll('#mob-sev-panel .mob-sev-row').forEach(row => {
-      row.addEventListener('click', () => {
-        const label = document.getElementById('mob-sev-label');
-        const active = row.classList.contains('active');
-        if (label) label.textContent = active ? 'Removals' : row.querySelector('.mob-sev-label-text').textContent;
-        setTimeout(closeAll, 150);
-      });
-    });
-
-    // Mobile venue type pills use .venue-pill[data-type] — already wired.
-    // After tap, update the filter button to show active state.
-    document.querySelectorAll('#mob-type-panel .venue-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const anyActive = !!document.querySelector('#mob-type-panel .venue-pill.active');
-        typeBtn.classList.toggle('active', anyActive);
-        // Keep panel open so user can adjust; close on map tap.
-      });
-    });
-  })();
+  // ── Mobile filter panels — persistent, no toggle buttons needed ─────────────
+  // Venue type pills and severity rows are always visible when sheet is open.
+  // Clicks are handled by the existing global .venue-pill and .key-row handlers.
 
   // ── Mobile onboarding lite card ───────────────────────────────────────────
   (function() {
