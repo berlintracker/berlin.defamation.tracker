@@ -1270,8 +1270,8 @@
 
       #handle-title-mini {
         font-family: "Source Serif 4", serif;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 17px;
+        font-weight: 600;
         color: var(--ink);
         flex: 1;
         white-space: nowrap;
@@ -1417,9 +1417,9 @@
       #mob-venue-flyout.open, #mob-sev-flyout.open { display: block; }
 
       /* Venue pills: wrap inside flyout, shrink to content */
-      #mob-venue-flyout { width: fit-content; max-width: min(280px, calc(100vw - 28px)); }
+      #mob-venue-flyout { display: inline-block; max-width: min(280px, calc(100vw - 28px)); }
       #mob-venue-scroll {
-        display: flex;
+        display: inline-flex;
         flex-wrap: wrap;
         gap: 8px;
         padding: 12px 14px;
