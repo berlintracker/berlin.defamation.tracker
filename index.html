@@ -3204,12 +3204,15 @@
     });
 
     // Show active pill count on Filter button
+    // Deferred so filterByVenueType (registered earlier) has run and toggled .active first
     document.querySelectorAll('#mob-venue-scroll .venue-pill').forEach(pill => {
       pill.addEventListener('click', () => {
-        const lbl = document.getElementById('mob-filter-label');
-        const n   = document.querySelectorAll('#mob-venue-scroll .venue-pill.active').length;
-        if (lbl) lbl.textContent = n > 0 ? 'Filter (' + n + ')' : 'Filter';
-        filterBtn?.classList.toggle('active', n > 0);
+        setTimeout(() => {
+          const lbl = document.getElementById('mob-filter-label');
+          const n   = document.querySelectorAll('#mob-venue-scroll .venue-pill.active').length;
+          if (lbl) lbl.textContent = n > 0 ? 'Filter (' + n + ')' : 'Filter';
+          filterBtn?.classList.toggle('active', n > 0);
+        }, 0);
       });
     });
   })();
