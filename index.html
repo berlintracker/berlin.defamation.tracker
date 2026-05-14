@@ -1454,7 +1454,7 @@
       #mob-lang-switch {
         position: fixed;
         top: 68px; /* below search bar (12px offset + ~48px bar + 8px gap) */
-        right: 12px;
+        left: 12px;
         z-index: 151;
         display: flex;
         background: rgba(250,249,246,.96);
@@ -2104,7 +2104,7 @@
 
     // Sidebar — title is bilingual/static; only update mini handle
     const miniTitle = document.getElementById('handle-title-mini');
-    if (miniTitle) miniTitle.textContent = lang === 'de' ? 'Berlin Trust‑Index' : 'Berlin Trust Index';
+    if (miniTitle) miniTitle.textContent = lang === 'de' ? 'Berlin Vertrauensindex' : 'Berlin Trust Index';
     updateHandleMini();
     document.getElementById('sidebar-desc').textContent = S.description;
     const sideDisclaimer = document.getElementById('sidebar-disclaimer'); if (sideDisclaimer) sideDisclaimer.textContent = S.disclaimer;
