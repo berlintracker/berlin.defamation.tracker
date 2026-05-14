@@ -82,12 +82,21 @@
       overflow: hidden;
     }
 
+    /* ── Mobile: disable zoom so Leaflet pixel math is correct ── */
+    @media (max-width: 767px) {
+      html { zoom: 1; }
+      body { height: 100vh; }
+    }
+
     /* ── No-flash sidebar hide for first-time visitors ── */
-    html.ob-start #sidebar {
-      width: 0 !important;
-      min-width: 0 !important;
-      overflow: hidden !important;
-      opacity: 0 !important;
+    /* Desktop only: hide sidebar during onboarding carousel */
+    @media (min-width: 768px) {
+      html.ob-start #sidebar {
+        width: 0 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+      }
     }
 
     /* ── Sidebar ── */
@@ -103,11 +112,19 @@
     }
 
     #sidebar-header {
-      padding: 20px 28px 20px;
+      padding: 14px 28px 20px;
       border-bottom: 1px solid var(--rule);
     }
 
-    /* ── Top utility bar: search + lang ── */
+    /* On desktop, search sits above sidebar-header as a flex sibling */
+    @media (min-width: 768px) {
+      #venue-search-wrap {
+        padding: 20px 28px 0;
+        flex-shrink: 0;
+      }
+    }
+
+    /* ── Top utility bar: lang (search now sits above sidebar-header) ── */
     #sidebar-topbar {
       display: flex;
       align-items: center;
@@ -1280,21 +1297,198 @@
       /* Headline card too wide for mobile — hide it */
       #headline-stat { display: none; }
       #venue-filters { display: none; }
+      #map-key { display: none; }
 
-      /* Legend repositioned above the sheet handle */
-      #map-key { bottom: 84px; right: 12px; }
-
-      /* About button above legend */
-      #about-btn { top: auto; bottom: calc(84px + 48px + 8px); right: 12px; }
+      /* About button — bottom right above handle */
+      #about-btn { top: auto; bottom: calc(144px + 8px); right: 12px; }
 
       #about-modal { padding: 28px 24px 24px; }
+
+      /* ── Search — always visible, sits between handle and filter bar ── */
+      #venue-search-wrap {
+        padding: 0 16px 0;
+        flex-shrink: 0;
+      }
+      #venue-search-input {
+        font-size: 14px;
+        padding: 10px 12px 10px 34px;
+        border-radius: 10px;
+      }
+
+      /* ── Mobile filter bar ── */
+      #mob-filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .mob-filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--bg-overlay);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-2);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background .15s, color .15s;
+      }
+      .mob-filter-btn.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .mob-filter-btn.active svg { stroke: #fff; }
+
+      /* ── Mobile filter panels ── */
+      .mob-filter-panel {
+        display: none;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--rule);
+        background: var(--bg-main);
+      }
+      .mob-filter-panel.open { display: block; }
+
+      /* Venue type panel: horizontal scroll */
+      #mob-type-scroll {
+        display: flex;
+        gap: 8px;
+        padding: 10px 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      #mob-type-scroll::-webkit-scrollbar { display: none; }
+      #mob-type-scroll .venue-pill { flex-shrink: 0; font-size: 12px; padding: 5px 10px 5px 8px; }
+
+      /* Severity panel: 2×2 grid */
+      #mob-sev-panel { padding: 8px 16px 10px; }
+      .mob-sev-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background .15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-sev-row:hover { background: rgba(0,0,0,.04); }
+      .mob-sev-row.active { background: rgba(196,154,58,0.10); color: var(--accent); }
+      .mob-sev-label-text { font-size: 13px; font-weight: 500; flex: 1; }
+      .mob-sev-range { font-size: 11px; color: var(--muted); }
+      .mob-sev-row.active .mob-sev-range { color: var(--accent); opacity: .75; }
+
+      /* ── Sheet content: scrollable when expanded ── */
+      .sheet-content {
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      /* Hide desktop-only header content on mobile */
+      #sidebar-header { display: none; }
+
+      /* Mode tabs: full width */
+      #modes { border-top: none; }
+
+      /* Footer disclosure */
+      .sheet-footer {
+        padding: 16px 28px 24px;
+        font-size: 11px;
+        color: var(--muted);
+        text-align: center;
+        border-top: 1px solid var(--rule);
+      }
     }
+
+    /* ── Desktop: hide mobile-only elements ── */
+    @media (min-width: 768px) {
+      #mob-filter-bar { display: none; }
+      #mob-type-panel { display: none; }
+      #mob-sev-panel  { display: none; }
+      .sheet-footer   { display: none; }
+      /* Search sits correctly in sidebar-topbar on desktop */
+      #venue-search-wrap { position: relative; flex: 1; padding: 0; }
+    }
+
+    /* ── Onboarding lite card (mobile first-time visitors) ── */
+    #ob-lite {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(34,34,31,.35);
+      align-items: center;
+      justify-content: center;
+      z-index: 99998;
+      padding: 24px;
+    }
+    #ob-lite.show { display: flex; }
+    .ob-lite-card {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 16px;
+      padding: 32px 24px 28px;
+      max-width: 340px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.14);
+      text-align: center;
+    }
+    .ob-lite-logo {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .ob-lite-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink-2);
+      margin-bottom: 24px;
+    }
+    .ob-lite-cta {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: "Inter", sans-serif;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity .2s;
+    }
+    .ob-lite-cta:active { opacity: .85; }
   </style>
   <script data-goatcounter="https://berlintracker.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 
-<!-- ── Mobile holding page ───────────────────────────────────────────────── -->
+<!-- ── Mobile onboarding lite card (first-time visitors) ──────────────────── -->
+<div id="ob-lite">
+  <div class="ob-lite-card">
+    <div class="ob-lite-logo">Berlin Trust Index</div>
+    <p class="ob-lite-body" id="ob-lite-body">Google is removing reviews from Berlin venues following defamation complaints. This map documents them.</p>
+    <button class="ob-lite-cta" id="ob-lite-btn">Explore the data →</button>
+  </div>
+</div>
+
+<!-- ── Mobile holding page (legacy — kept for email signup, not displayed) ── -->
 <div id="mobile-wall" style="display:none">
   <div class="mw-card">
     <div class="mw-logo">Berlin<br>Trust Index</div>
@@ -1357,11 +1551,8 @@
 </style>
 <script>
 (function() {
-  var isMobile = window.innerWidth < 768 && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (!isMobile) return;
-  var de = navigator.language && navigator.language.toLowerCase().startsWith('de');
-  document.getElementById('mobile-wall').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  // Mobile wall removed — app now works on mobile.
+  return;
   document.getElementById('mw-sorry').textContent  = de ? 'Auf Mobilgeräten leider noch nicht verfügbar 😔' : 'Sorry, this is broken on mobile 😔';
   document.getElementById('mw-body').textContent   = de ? 'Wir arbeiten daran. Komm auf dem Desktop zurück – oder hinterlass uns deine E-Mail-Adresse und wir melden uns, wenn es so weit ist.' : 'We\'re working on it. Come back on desktop, or leave your email and we\'ll let you know when it\'s ready.';
   document.getElementById('mw-btn').textContent    = de ? 'Benachrichtigen' : 'Notify me';
@@ -1396,18 +1587,81 @@
       <span id="handle-stat-mini"></span>
     </div>
   </div>
+
+  <!-- Search — always visible on mobile (collapsed + expanded); styled into header on desktop -->
+  <div id="venue-search-wrap">
+    <svg id="venue-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <input id="venue-search-input" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search venues…" aria-label="Search venues" aria-haspopup="listbox" aria-expanded="false"/>
+    <div id="venue-search-dropdown" role="listbox"></div>
+  </div>
+
+  <!-- Mobile filter bar — always visible on mobile, hidden on desktop -->
+  <div id="mob-filter-bar">
+    <button id="mob-type-btn" class="mob-filter-btn" aria-expanded="false" aria-label="Filter by venue type">
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+        <line x1="0" y1="1.5" x2="13" y2="1.5"/>
+        <line x1="2" y1="5.5" x2="11" y2="5.5"/>
+        <line x1="4" y1="9.5" x2="9" y2="9.5"/>
+      </svg>
+      <span class="mob-filter-btn-label">Filter</span>
+    </button>
+    <button id="mob-sev-btn" class="mob-filter-btn" aria-expanded="false" aria-label="Filter by removal count">
+      <span class="mob-filter-btn-label" id="mob-sev-label">Removals</span>
+      <svg id="mob-sev-chevron" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transition:transform .2s;flex-shrink:0;"><polyline points="1,2 4,6 7,2"/></svg>
+    </button>
+  </div>
+
+  <!-- Mobile venue type panel — expands under filter bar -->
+  <div id="mob-type-panel" class="mob-filter-panel">
+    <div id="mob-type-scroll">
+      <button class="venue-pill" data-type="restaurant">
+        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="11"/><polyline points="0,1 0,4 2,5.5 4,4 4,1"/><line x1="9" y1="1" x2="9" y2="4.5" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="4.5" x2="9" y2="11"/></svg>Restaurants
+      </button>
+      <button class="venue-pill" data-type="bar">
+        <svg width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,1 Q0,5 5,7 Q10,5 9,1 Z"/><line x1="5" y1="7" x2="5" y2="11"/><line x1="2.5" y1="11" x2="7.5" y2="11"/></svg>Bars
+      </button>
+      <button class="venue-pill" data-type="cafe">
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1,3 L1,9 Q1,11 3,11 L7,11 Q9,11 9,9 L9,3 Z"/><path d="M9,5 Q12,5 12,7 Q12,9 9,9"/></svg>Cafés
+      </button>
+      <button class="venue-pill" data-type="museum">
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="0.5" y1="11.5" x2="12.5" y2="11.5"/><line x1="1.5" y1="5" x2="1.5" y2="11"/><line x1="4.5" y1="5" x2="4.5" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="11" y1="5" x2="11" y2="11"/><polyline points="0.5,5 6.5,1 12.5,5"/></svg>Museums
+      </button>
+      <button class="venue-pill" data-type="club">
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="0,6 2,6 3.5,2 5,10 6.5,4 8,8 9.5,6 13,6"/></svg>Clubs
+      </button>
+      <button class="venue-pill" data-type="gym">
+        <svg width="14" height="7" viewBox="0 0 14 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="0.5" x2="1" y2="6.5"/><line x1="3" y1="1.5" x2="3" y2="5.5"/><line x1="3" y1="3.5" x2="11" y2="3.5"/><line x1="11" y1="1.5" x2="11" y2="5.5"/><line x1="13" y1="0.5" x2="13" y2="6.5"/></svg>Gyms
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile severity panel — expands under filter bar -->
+  <div id="mob-sev-panel" class="mob-filter-panel">
+    <div class="mob-sev-row key-row" data-sev="1">
+      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="var(--sev-1)" stroke="white" stroke-width="1.5"/></svg>
+      <span class="mob-sev-label-text">Rare</span><span class="mob-sev-range">1–10 removals</span>
+    </div>
+    <div class="mob-sev-row key-row" data-sev="2">
+      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,17 2,17" fill="var(--sev-3)" stroke="white" stroke-width="1.5"/></svg>
+      <span class="mob-sev-label-text">Repeated</span><span class="mob-sev-range">11–50 removals</span>
+    </div>
+    <div class="mob-sev-row key-row" data-sev="3">
+      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,2 18,10 10,18 2,10" fill="var(--sev-4)" stroke="white" stroke-width="1.5"/></svg>
+      <span class="mob-sev-label-text">Significant</span><span class="mob-sev-range">51–200 removals</span>
+    </div>
+    <div class="mob-sev-row key-row" data-sev="4">
+      <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden="true"><polygon points="10,1 19,10 10,19 1,10" fill="var(--sev-5)" stroke="white" stroke-width="1.5"/></svg>
+      <span class="mob-sev-label-text">Extreme</span><span class="mob-sev-range">200+ removals</span>
+    </div>
+  </div>
+
+  <div class="sheet-content">
   <div id="sidebar-header">
     <div id="sidebar-topbar">
-      <!-- Venue search -->
-      <div id="venue-search-wrap">
-        <svg id="venue-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <input id="venue-search-input" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Search venues…" aria-label="Search venues" aria-haspopup="listbox" aria-expanded="false"/>
-        <div id="venue-search-dropdown" role="listbox"></div>
-      </div>
       <!-- Language picker -->
       <div class="lang-switch" id="lang-switch">
         <div class="lang-trigger">
@@ -1438,6 +1692,8 @@
   </div>
   <div id="list-header" style="padding:16px 28px 8px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Top 10 in current view</div>
   <div id="list"></div>
+  <div class="sheet-footer">Disclosed by Google. Does not imply wrongdoing.</div>
+  </div><!-- /.sheet-content -->
 </div>
 
 <div id="side-tab" aria-label="Toggle panel">
@@ -2673,6 +2929,116 @@
 
     // Close when tapping the map
     if (mapWrap) mapWrap.addEventListener('click', closeDrawer);
+
+    // Swipe gestures on handle
+    let _touchY = 0;
+    if (handle) {
+      handle.addEventListener('touchstart', e => {
+        _touchY = e.changedTouches[0].clientY;
+      }, { passive: true });
+      handle.addEventListener('touchend', e => {
+        const delta = e.changedTouches[0].clientY - _touchY;
+        if (delta < -50 && !sidebar.classList.contains('sheet-open')) toggleDrawer();
+        if (delta >  50 &&  sidebar.classList.contains('sheet-open')) closeDrawer();
+      }, { passive: true });
+    }
+
+    // Invalidate Leaflet on orientation change
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => { if (typeof map !== 'undefined') map.invalidateSize(false); }, 300);
+    });
+  })();
+
+  // ── Mobile filter panels ──────────────────────────────────────────────────
+  (function() {
+    if (window.innerWidth >= 768) return;
+
+    const typeBtn   = document.getElementById('mob-type-btn');
+    const sevBtn    = document.getElementById('mob-sev-btn');
+    const typePanel = document.getElementById('mob-type-panel');
+    const sevPanel  = document.getElementById('mob-sev-panel');
+    const sevChev   = document.getElementById('mob-sev-chevron');
+
+    function closeAll() {
+      typePanel.classList.remove('open');
+      sevPanel.classList.remove('open');
+      typeBtn.classList.remove('active');
+      sevBtn.classList.remove('active');
+      typeBtn.setAttribute('aria-expanded', 'false');
+      sevBtn.setAttribute('aria-expanded', 'false');
+      if (sevChev) sevChev.style.transform = '';
+    }
+
+    typeBtn?.addEventListener('click', e => {
+      e.stopPropagation();
+      const opening = !typePanel.classList.contains('open');
+      closeAll();
+      if (opening) {
+        typePanel.classList.add('open');
+        typeBtn.classList.add('active');
+        typeBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    sevBtn?.addEventListener('click', e => {
+      e.stopPropagation();
+      const opening = !sevPanel.classList.contains('open');
+      closeAll();
+      if (opening) {
+        sevPanel.classList.add('open');
+        sevBtn.classList.add('active');
+        sevBtn.setAttribute('aria-expanded', 'true');
+        if (sevChev) sevChev.style.transform = 'rotate(180deg)';
+      }
+    });
+
+    // Close panels when tapping map
+    document.getElementById('map-wrap')?.addEventListener('click', closeAll);
+
+    // Mobile severity rows use .key-row[data-sev] — already wired by existing handler.
+    // After tap, close the panel and update button label.
+    document.querySelectorAll('#mob-sev-panel .mob-sev-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const label = document.getElementById('mob-sev-label');
+        const active = row.classList.contains('active');
+        if (label) label.textContent = active ? 'Removals' : row.querySelector('.mob-sev-label-text').textContent;
+        setTimeout(closeAll, 150);
+      });
+    });
+
+    // Mobile venue type pills use .venue-pill[data-type] — already wired.
+    // After tap, update the filter button to show active state.
+    document.querySelectorAll('#mob-type-panel .venue-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const anyActive = !!document.querySelector('#mob-type-panel .venue-pill.active');
+        typeBtn.classList.toggle('active', anyActive);
+        // Keep panel open so user can adjust; close on map tap.
+      });
+    });
+  })();
+
+  // ── Mobile onboarding lite card ───────────────────────────────────────────
+  (function() {
+    if (window.innerWidth >= 768) return;
+    if (document.cookie.includes('seen_intro=1')) return;
+
+    const card = document.getElementById('ob-lite');
+    const btn  = document.getElementById('ob-lite-btn');
+    const body = document.getElementById('ob-lite-body');
+
+    // Bilingual
+    const de = navigator.language && navigator.language.toLowerCase().startsWith('de');
+    if (de && body) body.textContent = 'Google entfernt Bewertungen aus Berliner Betrieben nach Diffamierungsbeschwerden. Diese Karte dokumentiert sie.';
+    if (de && btn)  btn.textContent  = 'Daten erkunden →';
+
+    if (card) card.classList.add('show');
+
+    btn?.addEventListener('click', () => {
+      document.cookie = 'seen_intro=1; path=/; max-age=31536000';
+      card.style.transition = 'opacity .3s';
+      card.style.opacity = '0';
+      setTimeout(() => card.classList.remove('show'), 300);
+    });
   })();
 
   function updateHandleMini() {
