@@ -1416,16 +1416,26 @@
       }
       #mob-venue-flyout.open, #mob-sev-flyout.open { display: block; }
 
-      /* Venue pills: wrap inside flyout, shrink to content */
-      #mob-venue-flyout { max-width: min(280px, calc(100vw - 28px)); }
-      #mob-venue-flyout.open { display: inline-block; } /* overrides shared display:block so width shrinks to content */
+      /* Venue pills: vertical list, flyout shrinks to widest pill */
+      #mob-venue-flyout.open { display: inline-block; }
       #mob-venue-scroll {
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px;
       }
-      #mob-venue-scroll .venue-pill { font-size: 12px; padding: 5px 10px 5px 8px; }
+      #mob-venue-scroll .venue-pill {
+        font-size: 12px;
+        padding: 7px 12px 7px 10px;
+        justify-content: flex-start;
+        width: 100%;
+        border-radius: 6px;
+        border: none;
+        background: none;
+        box-shadow: none;
+      }
+      #mob-venue-scroll .venue-pill:hover { background: rgba(0,0,0,.04); }
+      #mob-venue-scroll .venue-pill.active { background: var(--ink); color: #fff; }
 
       /* Severity rows inside flyout — shrink to content */
       #mob-sev-flyout { width: fit-content; }
